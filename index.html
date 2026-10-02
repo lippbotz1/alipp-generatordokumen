@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="format-detection" content="telephone=no">
+<title>Generator Dokumen - By Alipp</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #4f46e5;
+  --primary-soft: #eef2ff;
+  --accent: #06b6d4;
+  --bg: #f8fafc;
+  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+  --card: #ffffff;
+  --border: #e5e7eb;
+  --border-soft: #f1f5f9;
+  --text: #0f172a;
+  --text-soft: #475569;
+  --muted: #94a3b8;
+  --danger: #ef4444;
+  --success: #10b981;
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
+  --shadow-md: 0 4px 16px rgba(15,23,42,.06);
+  --shadow-lg: 0 12px 40px rgba(15,23,42,.08);
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+html, body {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  touch-action: pan-x pan-y;
+  -ms-touch-action: pan-x pan-y;
+  -ms-content-zooming: none;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: 'Inter', -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg-gradient);
+  background-attachment: fixed;
+  color: var(--text);
+  line-height: 1.55;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -webkit-touch-callout: none;
+}
+
+@supports (-webkit-touch-callout: none) {
+  body { touch-action: pan-x pan-y; }
+}
+
+/* ===== LAYOUT ===== */
+.layout { display: flex; min-height: 100vh; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 250px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  color: #fff;
+  padding: 24px 14px;
+  display: flex; flex-direction: column; gap: 4px;
+  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  border-right: 1px solid rgba(255,255,255,.06);
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+.sidebar .brand {
+  font-size: 16px; font-weight: 700; color: #fff;
+  padding: 4px 12px 20px;
+  display: flex; align-items: center; gap: 10px;
+  letter-spacing: -0.3px;
+}
+.sidebar .brand .logo {
+  width: 34px; height: 34px;
+  background: linear-gradient(135deg, #6366f1, #06b6d4);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(99,102,241,.4);
+  flex-shrink: 0;
+}
+.sidebar .brand .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+.sidebar .brand small {
+  display: block; font-size: 10px; color: #94a3b8;
+  font-weight: 500; letter-spacing: .3px; margin-top: 1px;
+}
+
+.nav-label {
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+  color: #64748b; font-weight: 600;
+  padding: 14px 12px 6px;
+}
+
+.sidebar .nav-btn {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.06);
+  color: #cbd5e1;
+  padding: 11px 14px;
+  border-radius: 10px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 13.5px; font-weight: 500;
+  transition: all .18s ease;
+  display: flex; align-items: center; gap: 11px;
+  font-family: inherit;
+}
+.sidebar .nav-btn .ico {
+  font-size: 15px;
+  width: 20px; text-align: center;
+  flex-shrink: 0;
+}
+.sidebar .nav-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  border-color: rgba(255,255,255,0.12);
+}
+.sidebar .nav-btn.active {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+  font-weight: 600;
+  border-color: rgba(255,255,255,0.2);
+  box-shadow: 0 4px 14px rgba(0,0,0,.2);
+}
+
+.sidebar .spacer { flex: 1; min-height: 12px; }
+
+.sidebar .data-tools {
+  display: flex; flex-direction: column; gap: 6px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(255,255,255,.06);
+}
+
+.sidebar .credit {
+  font-size: 10px; color: #64748b;
+  text-align: center; padding: 14px 4px 4px;
+  letter-spacing: .3px;
+}
+.sidebar .credit strong { color: #a5b4fc; font-weight: 600; }
+
+/* ===== MAIN ===== */
+.main {
+  flex: 1;
+  padding: 28px 32px 40px;
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ===== PANEL ===== */
+.panel { display: none; animation: fadeIn .3s ease; }
+.panel.active { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-header {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.panel h2 {
+  font-size: 24px; font-weight: 700; color: var(--text);
+  letter-spacing: -0.5px;
+  display: flex; align-items: center; gap: 10px;
+}
+.panel h2 .badge {
+  font-size: 10px; font-weight: 600;
+  background: var(--primary-soft); color: var(--primary);
+  padding: 3px 9px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: .5px;
+}
+.panel .subtitle {
+  font-size: 13px; color: var(--muted);
+  margin-top: 4px;
+}
+.panel h3 {
+  margin: 22px 0 10px; font-size: 14px;
+  font-weight: 600; color: var(--text-soft);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+/* ===== FORM GRID ===== */
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 14px;
+  background: var(--card);
+  padding: 24px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-soft);
+}
+.form-grid label {
+  display: flex; flex-direction: column;
+  font-size: 12px; color: var(--text-soft);
+  gap: 6px; font-weight: 600;
+  letter-spacing: .2px;
+}
+.form-grid label.full { grid-column: 1 / -1; }
+.form-grid input,
+.form-grid textarea,
+.form-grid select {
+  padding: 11px 13px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 16px;
+  font-family: inherit;
+  color: var(--text);
+  transition: all .18s ease;
+  background: #fff;
+  font-weight: 400;
+}
+.form-grid input::placeholder,
+.form-grid textarea::placeholder { color: #cbd5e1; }
+.form-grid input:hover,
+.form-grid textarea:hover,
+.form-grid select:hover { border-color: #cbd5e1; }
+.form-grid input:focus,
+.form-grid textarea:focus,
+.form-grid select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79,70,229,.1);
+  background: #fff;
+}
+.form-grid textarea { resize: vertical; min-height: 80px; }
+
+/* ===== UPLOAD ===== */
+.upload-box {
+  display: flex; flex-direction: column; gap: 8px;
+  background: var(--border-soft);
+  border: 1.5px dashed #cbd5e1;
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  transition: all .18s;
+}
+.upload-box:hover { border-color: var(--primary); background: #f5f3ff; }
+.upload-box input[type=file] { font-size: 11px; color: var(--text-soft); }
+.upload-box input[type=file]::file-selector-button {
+  background: rgba(148,163,184,.25);
+  border: none; padding: 5px 12px; border-radius: 6px;
+  font-size: 11px; font-weight: 600; color: var(--text-soft);
+  cursor: pointer; margin-right: 8px;
+  transition: all .15s;
+}
+.upload-box input[type=file]::file-selector-button:hover {
+  background: rgba(148,163,184,.4);
+}
+.upload-preview {
+  max-height: 55px; max-width: 130px;
+  object-fit: contain;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px; background: #fff;
+}
+.upload-preview:not([src]),
+.upload-preview[src=""] { display: none; }
+
+/* ===== BUTTONS ===== */
+.actions {
+  display: flex; flex-wrap: wrap; gap: 10px;
+  margin: 20px 0;
+}
+
+button.btn,
+button.add-item,
+.item-row button {
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .18s ease;
+  border-radius: var(--radius-sm);
+}
+
+button.btn {
+  border: 1px solid rgba(100,116,139,0.2);
+  padding: 11px 20px;
+  font-size: 13.5px;
+  background: rgba(148, 163, 184, 0.12);
+  color: #475569;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: inline-flex; align-items: center; gap: 8px;
+  box-shadow: 0 1px 2px rgba(15,23,42,.04);
+}
+button.btn:hover {
+  background: rgba(148, 163, 184, 0.22);
+  color: #1e293b;
+  border-color: rgba(100,116,139,0.35);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15,23,42,.08);
+}
+button.btn:active {
+  transform: translateY(0);
+  background: rgba(148, 163, 184, 0.3);
+}
+
+button.btn.primary {
+  background: rgba(100, 116, 139, 0.2);
+  color: #1e293b;
+  border-color: rgba(100,116,139,0.3);
+}
+button.btn.primary:hover {
+  background: rgba(100, 116, 139, 0.3);
+}
+
+button.btn.ghost {
+  background: rgba(148, 163, 184, 0.08);
+  color: #64748b;
+  border-color: rgba(148,163,184,0.15);
+}
+button.btn.ghost:hover {
+  background: rgba(148, 163, 184, 0.18);
+  color: #475569;
+}
+
+button.btn.danger {
+  background: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border-color: rgba(239,68,68,0.2);
+}
+button.btn.danger:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239,68,68,0.35);
+}
+
+button.btn.mini {
+  padding: 0 12px;
+  font-size: 13px;
+  min-height: 42px;
+  border-radius: var(--radius-sm);
+}
+
+button.add-item {
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
+  border: 1px solid rgba(16,185,129,0.2);
+  padding: 10px 18px;
+  font-size: 13px;
+  margin-top: 10px;
+}
+button.add-item:hover {
+  background: rgba(16, 185, 129, 0.18);
+  transform: translateY(-1px);
+}
+
+/* ===== INVOICE ITEMS ===== */
+.item-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  gap: 8px; margin-bottom: 8px;
+}
+.item-row input {
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-family: inherit;
+  transition: all .18s;
+  background: #fff;
+}
+.item-row input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+}
+.item-row input[readonly] {
+  background: var(--border-soft);
+  color: var(--text-soft);
+  font-weight: 600;
+}
+.item-row button {
+  padding: 0;
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+  font-size: 16px;
+  border: 1px solid rgba(239,68,68,0.15);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.item-row button:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: none;
+}
+
+/* ===== PREVIEW ===== */
+.preview-wrap { margin-top: 24px; }
+.preview-label {
+  font-size: 11px; color: var(--muted);
+  text-transform: uppercase; letter-spacing: 1.2px;
+  margin-bottom: 8px; font-weight: 700;
+  display: flex; align-items: center; gap: 8px;
+}
+.preview-label::before {
+  content: ""; width: 8px; height: 8px;
+  background: var(--success);
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgba(16,185,129,.15);
+  animation: pulse 2s infinite;
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .5; }
+}
+.preview {
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius);
+  padding: 44px 46px;
+  min-height: 200px;
+  border: 1px solid var(--border-soft);
+}
+.preview:empty::before {
+  content: "Preview akan muncul di sini...";
+  color: #cbd5e1; font-style: italic;
+}
+
+/* ===== DOKUMEN ===== */
+.doc { font-family: "Times New Roman", serif; color: #000; line-height: 1.6; }
+.doc h1 { font-size: 20px; text-align: center; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
+.doc .divider { border-bottom: 3px double #000; margin: 12px 0 20px; }
+.doc p { margin-bottom: 10px; text-align: justify; }
+.doc .signature { margin-top: 60px; text-align: right; }
+.doc .signature .name { margin-top: 60px; font-weight: bold; text-decoration: underline; }
+.doc .signature img { max-height: 60px; margin-bottom: 4px; }
+.doc-header-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; border-bottom: 2px solid #000; padding-bottom: 10px; }
+.doc-header-logo img { max-height: 55px; }
+
+/* CV */
+.cv-header { text-align: center; border-bottom: 2px solid #2563eb; padding-bottom: 14px; margin-bottom: 18px; }
+.cv-header h1 { color: #1e293b; font-size: 26px; margin-bottom: 4px; font-family: Arial, sans-serif; text-transform: none; letter-spacing: 0; }
+.cv-header .title { color: #2563eb; font-size: 15px; font-weight: 600; }
+.cv-header .contact { font-size: 12px; color: #64748b; margin-top: 6px; font-family: Arial, sans-serif; }
+.cv-section { margin-bottom: 16px; font-family: Arial, sans-serif; }
+.cv-section h3 { color: #2563eb; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #e2e8f0; padding-bottom: 4px; margin-bottom: 8px; margin-top: 0; }
+.cv-section p, .cv-section li { font-size: 13px; color: #334155; }
+.cv-section ul { padding-left: 18px; }
+
+/* Invoice */
+.inv-header { display: flex; justify-content: space-between; margin-bottom: 24px; font-family: Arial, sans-serif; gap: 16px; }
+.inv-header h1 { color: #2563eb; font-size: 32px; letter-spacing: 2px; }
+.inv-logo { max-height: 60px; margin-bottom: 8px; }
+.inv-meta { text-align: right; font-size: 13px; }
+.inv-parties { display: flex; justify-content: space-between; margin-bottom: 20px; font-family: Arial, sans-serif; font-size: 13px; }
+.inv-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 13px; margin-bottom: 16px; }
+.inv-table th { background: #2563eb; color: #fff; padding: 10px; text-align: left; }
+.inv-table td { padding: 10px; border-bottom: 1px solid #e2e8f0; }
+.inv-table .total-row td { font-weight: bold; background: #f1f5f9; font-size: 15px; }
+.inv-note { font-size: 12px; color: #64748b; font-style: italic; margin-top: 10px; }
+.inv-sign { margin-top: 50px; text-align: right; font-family: Arial, sans-serif; font-size: 13px; }
+.inv-sign img { max-height: 60px; display: block; margin-left: auto; margin-bottom: 4px; }
+
+/* Kwitansi */
+.kw-box { border: 2px solid #000; padding: 24px; font-family: "Times New Roman", serif; }
+.kw-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 18px; }
+.kw-header h1 { font-size: 26px; letter-spacing: 3px; }
+.kw-row { display: flex; margin-bottom: 12px; font-size: 15px; }
+.kw-row .label { width: 180px; font-weight: bold; }
+.kw-row .value { flex: 1; border-bottom: 1px dotted #000; }
+.kw-amount { background: #f1f5f9; padding: 14px; border: 1px dashed #000; margin: 16px 0; font-size: 18px; font-weight: bold; text-align: center; }
+.kw-sign { margin-top: 60px; text-align: right; }
+.kw-sign img { max-height: 60px; margin-bottom: 4px; }
+.kw-sign .name { margin-top: 60px; font-weight: bold; text-decoration: underline; }
+
+.footer-note {
+  text-align: center; padding: 24px 20px 8px;
+  color: var(--muted); font-size: 12px;
+  line-height: 1.7;
+}
+.footer-note strong { color: var(--primary); font-weight: 600; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 760px) {
+  .layout { flex-direction: column; }
+  .sidebar {
+    width: 100%; height: auto; position: relative;
+    flex-direction: row; flex-wrap: wrap;
+    padding: 14px; gap: 8px;
+    border-right: none; border-bottom: 1px solid rgba(255,255,255,.08);
+  }
+  .sidebar .brand { width: 100%; padding: 0 4px 10px; }
+  .nav-label { display: none; }
+  .sidebar .nav-btn {
+    font-size: 12.5px; padding: 9px 12px;
+    flex: 1 1 auto; justify-content: center;
+  }
+  .sidebar .nav-btn .ico { width: auto; }
+  .sidebar .spacer { display: none; }
+  .sidebar .data-tools {
+    width: 100%; flex-direction: row;
+    padding-top: 10px; margin-top: 4px;
+    border-top: 1px solid rgba(255,255,255,.08);
+  }
+  .sidebar .data-tools button { flex: 1; font-size: 11.5px; padding: 8px; }
+  .sidebar .credit { display: none; }
+
+  .main { padding: 18px 16px 30px; }
+  .panel h2 { font-size: 20px; }
+  .form-grid { padding: 18px; gap: 12px; }
+  .preview { padding: 22px; }
+  .item-row { grid-template-columns: 1fr 1fr; }
+  .inv-header { flex-direction: column; gap: 12px; }
+  .inv-parties { flex-direction: column; gap: 12px; }
+  .actions button.btn { flex: 1 1 auto; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="logo">📄</div>
+      <div class="brand-text">
+        Generator Dokumen
+        <small>Developer By Alipp</small>
+      </div>
+    </div>
+
+    <div class="nav-label">Dokumen</div>
+
+    <button data-tab="lamaran" class="nav-btn active">
+      <span class="ico">✉️</span> Surat Lamaran
+    </button>
+    <button data-tab="cv" class="nav-btn">
+      <span class="ico">👤</span> CV / Resume
+    </button>
+    <button data-tab="invoice" class="nav-btn">
+      <span class="ico">🧾</span> Invoice
+    </button>
+    <button data-tab="kwitansi" class="nav-btn">
+      <span class="ico">💵</span> Kwitansi
+    </button>
+    <button data-tab="izin" class="nav-btn">
+      <span class="ico">📋</span> Surat Izin
+    </button>
+
+    <div class="spacer"></div>
+
+    <div class="data-tools">
+      <button class="btn ghost" onclick="exportBackup()">
+        <span class="ico">💾</span> Backup Data
+      </button>
+      <button class="btn ghost" onclick="document.getElementById('importFile').click()">
+        <span class="ico">📂</span> Import Data
+      </button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+    </div>
+
+    <div class="credit">© 2026 <strong>Developer By Alipp</strong></div>
+  </aside>
+
+  <main class="main">
+    <!-- ===== LAMARAN ===== -->
+    <section class="panel active" id="panel-lamaran">
+      <div class="panel-header">
+        <h2>✉️ Surat Lamaran Kerja <span class="badge">Live Preview</span></h2>
+        <div class="subtitle">Isi form di bawah, preview & PDF otomatis terupdate</div>
+      </div>
+      <div class="form-grid">
+        <label>Nama Lengkap <input id="lam-nama" placeholder="Budi Santoso"></label>
+        <label>Tempat, Tanggal Lahir <input id="lam-ttl" placeholder="Jakarta, 1 Januari 1995"></label>
+        <label>Alamat <input id="lam-alamat" placeholder="Jl. Merdeka No. 10"></label>
+        <label>Telepon / Email <input id="lam-kontak" placeholder="0812xxx / budi@mail.com"></label>
+        <label>Posisi Dilamar <input id="lam-posisi" placeholder="Web Developer"></label>
+        <label>Nama Perusahaan <input id="lam-perusahaan" placeholder="PT Maju Jaya"></label>
+        <label>Alamat Perusahaan <input id="lam-alamat-pt" placeholder="Jl. Sudirman No. 1"></label>
+        <label>Tanggal Surat <input type="date" id="lam-tanggal"></label>
+        <label class="full">Isi / Pengalaman <textarea id="lam-isi" rows="4" placeholder="Saya memiliki pengalaman..."></textarea></label>
+        <label class="upload-box">Logo Perusahaan (opsional)
+          <input type="file" accept="image/*" id="lam-logo-file">
+          <img class="upload-preview" id="lam-logo-preview">
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="exportPDF('preview-lamaran','surat-lamaran')">📥 Export PDF</button>
+        <button class="btn" onclick="printPreview('preview-lamaran')">🖨️ Print</button>
+        <button class="btn danger" onclick="clearDraft('lamaran')">🗑️ Clear Draft</button>
+      </div>
+      <div class="preview-wrap">
+        <div class="preview-label">Live Preview</div>
+        <div class="preview" id="preview-lamaran"></div>
+      </div>
+    </section>
+
+    <!-- ===== CV ===== -->
+    <section class="panel" id="panel-cv">
+      <div class="panel-header">
+        <h2>👤 CV / Resume <span class="badge">Live Preview</span></h2>
+        <div class="subtitle">Buat CV profesional, siap export PDF</div>
+      </div>
+      <div class="form-grid">
+        <label>Nama <input id="cv-nama" placeholder="Budi Santoso"></label>
+        <label>Jabatan <input id="cv-jabatan" placeholder="Full Stack Developer"></label>
+        <label>Email <input id="cv-email" placeholder="budi@mail.com"></label>
+        <label>Telepon <input id="cv-telp" placeholder="0812xxxx"></label>
+        <label>Alamat <input id="cv-alamat" placeholder="Jakarta"></label>
+        <label>LinkedIn/Portfolio <input id="cv-link" placeholder="linkedin.com/in/budi"></label>
+        <label class="full">Ringkasan Profil <textarea id="cv-summary" rows="3"></textarea></label>
+        <label class="full">Pengalaman Kerja <textarea id="cv-exp" rows="5" placeholder="2020-2023 | PT ABC | Web Developer&#10;- Membuat ..."></textarea></label>
+        <label class="full">Pendidikan <textarea id="cv-edu" rows="3" placeholder="2015-2019 | Universitas XYZ | S1 Informatika"></textarea></label>
+        <label class="full">Keahlian <textarea id="cv-skills" rows="2" placeholder="HTML, CSS, JavaScript, React"></textarea></label>
+        <label class="upload-box">Foto Profil (opsional)
+          <input type="file" accept="image/*" id="cv-foto-file">
+          <img class="upload-preview" id="cv-foto-preview">
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="exportPDF('preview-cv','cv-resume')">📥 Export PDF</button>
+        <button class="btn" onclick="printPreview('preview-cv')">🖨️ Print</button>
+        <button class="btn danger" onclick="clearDraft('cv')">🗑️ Clear Draft</button>
+      </div>
+      <div class="preview-wrap">
+        <div class="preview-label">Live Preview</div>
+        <div class="preview" id="preview-cv"></div>
+      </div>
+    </section>
+
+    <!-- ===== INVOICE ===== -->
+    <section class="panel" id="panel-invoice">
+      <div class="panel-header">
+        <h2>🧾 Invoice <span class="badge">Live Preview</span></h2>
+        <div class="subtitle">Invoice dengan auto-hitung total & nomor otomatis</div>
+      </div>
+      <div class="form-grid">
+        <label>No. Invoice
+          <div style="display:flex;gap:6px">
+            <input id="inv-no" placeholder="INV-001" style="flex:1">
+            <button type="button" class="btn mini" onclick="autoNumber('inv-no','INV')" title="Auto nomor">⚡</button>
+          </div>
+        </label>
+        <label>Tanggal <input type="date" id="inv-tanggal"></label>
+        <label>Nama Klien <input id="inv-klien" placeholder="PT Klien Sejahtera"></label>
+        <label>Alamat Klien <input id="inv-alamat" placeholder="Jl. Klien No. 5"></label>
+        <label>Nama Perusahaan Anda <input id="inv-perusahaan" placeholder="PT Jasa Anda"></label>
+        <label>Info Kontak Anda <input id="inv-kontak" placeholder="0812xxx / email"></label>
+        <label class="upload-box">Logo Perusahaan
+          <input type="file" accept="image/*" id="inv-logo-file">
+          <img class="upload-preview" id="inv-logo-preview">
+        </label>
+        <label class="upload-box">Tanda Tangan
+          <input type="file" accept="image/*" id="inv-ttd-file">
+          <img class="upload-preview" id="inv-ttd-preview">
+        </label>
+      </div>
+
+      <h3>Item</h3>
+      <div id="inv-items"></div>
+      <button class="add-item" onclick="addInvoiceItem()">+ Tambah Item</button>
+
+      <label style="margin-top:16px;display:block;font-size:12px;color:var(--text-soft);font-weight:600;letter-spacing:.2px">Catatan
+        <input id="inv-catatan" placeholder="Pembayaran dalam 14 hari" style="width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;margin-top:6px;font-family:inherit;font-size:16px">
+      </label>
+
+      <div class="actions">
+        <button class="btn primary" onclick="exportPDF('preview-invoice','invoice')">📥 Export PDF</button>
+        <button class="btn" onclick="printPreview('preview-invoice')">🖨️ Print</button>
+        <button class="btn danger" onclick="clearDraft('invoice')">🗑️ Clear Draft</button>
+      </div>
+      <div class="preview-wrap">
+        <div class="preview-label">Live Preview</div>
+        <div class="preview" id="preview-invoice"></div>
+      </div>
+    </section>
+
+    <!-- ===== KWITANSI ===== -->
+    <section class="panel" id="panel-kwitansi">
+      <div class="panel-header">
+        <h2>💵 Kwitansi <span class="badge">Live Preview</span></h2>
+        <div class="subtitle">Terbilang otomatis — gak perlu nulis angka jadi huruf manual</div>
+      </div>
+      <div class="form-grid">
+        <label>No. Kwitansi
+          <div style="display:flex;gap:6px">
+            <input id="kw-no" placeholder="KW-001" style="flex:1">
+            <button type="button" class="btn mini" onclick="autoNumber('kw-no','KW')" title="Auto nomor">⚡</button>
+          </div>
+        </label>
+        <label>Tanggal <input type="date" id="kw-tanggal"></label>
+        <label>Telah Terima Dari <input id="kw-dari" placeholder="PT Sumber Dana"></label>
+        <label>Uang Sejumlah <input id="kw-jumlah" placeholder="5000000"></label>
+        <label class="full">Untuk Pembayaran <input id="kw-untuk" placeholder="Jasa pembuatan website"></label>
+        <label>Nama Penerima <input id="kw-penerima" placeholder="Budi Santoso"></label>
+        <label>Jabatan <input id="kw-jabatan" placeholder="Freelancer"></label>
+        <label class="upload-box">Tanda Tangan
+          <input type="file" accept="image/*" id="kw-ttd-file">
+          <img class="upload-preview" id="kw-ttd-preview">
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="exportPDF('preview-kwitansi','kwitansi')">📥 Export PDF</button>
+        <button class="btn" onclick="printPreview('preview-kwitansi')">🖨️ Print</button>
+        <button class="btn danger" onclick="clearDraft('kwitansi')">🗑️ Clear Draft</button>
+      </div>
+      <div class="preview-wrap">
+        <div class="preview-label">Live Preview</div>
+        <div class="preview" id="preview-kwitansi"></div>
+      </div>
+    </section>
+
+    <!-- ===== IZIN ===== -->
+    <section class="panel" id="panel-izin">
+      <div class="panel-header">
+        <h2>📋 Surat Izin / Keterangan <span class="badge">Live Preview</span></h2>
+        <div class="subtitle">Pilih jenis surat — isi otomatis menyesuaikan format</div>
+      </div>
+      <div class="form-grid">
+        <label>Jenis Surat
+          <select id="iz-jenis">
+            <option value="Surat Izin Tidak Masuk Kerja">Izin Tidak Masuk Kerja</option>
+            <option value="Surat Izin Tidak Masuk Sekolah">Izin Tidak Masuk Sekolah</option>
+            <option value="Surat Keterangan Kerja">Keterangan Kerja</option>
+            <option value="Surat Keterangan Domisili">Keterangan Domisili</option>
+            <option value="Surat Keterangan Sehat">Keterangan Sehat</option>
+          </select>
+        </label>
+        <label>No. Surat
+          <div style="display:flex;gap:6px">
+            <input id="iz-no" placeholder="001/SK/2026" style="flex:1">
+            <button type="button" class="btn mini" onclick="autoNumber('iz-no','SK')" title="Auto nomor">⚡</button>
+          </div>
+        </label>
+        <label>Nama <input id="iz-nama" placeholder="Budi Santoso"></label>
+        <label>Tempat, Tgl Lahir <input id="iz-ttl" placeholder="Jakarta, 1 Jan 1995"></label>
+        <label>Alamat <input id="iz-alamat" placeholder="Jl. Merdeka No. 10"></label>
+        <label>Jabatan/Status <input id="iz-jabatan" placeholder="Karyawan / Siswa"></label>
+        <label>Tanggal Mulai <input type="date" id="iz-mulai"></label>
+        <label>Tanggal Selesai <input type="date" id="iz-selesai"></label>
+        <label class="full">Keterangan / Alasan <textarea id="iz-alasan" rows="3"></textarea></label>
+        <label>Ditandatangani Oleh <input id="iz-ttd" placeholder="Kepala HRD / Direktur"></label>
+        <label>Jabatan Penandatangan <input id="iz-jabatan-ttd" placeholder="HRD Manager"></label>
+        <label class="upload-box">Logo Instansi (opsional)
+          <input type="file" accept="image/*" id="iz-logo-file">
+          <img class="upload-preview" id="iz-logo-preview">
+        </label>
+        <label class="upload-box">Tanda Tangan
+          <input type="file" accept="image/*" id="iz-ttd-file">
+          <img class="upload-preview" id="iz-ttd-preview">
+        </label>
+      </div>
+      <div class="actions">
+        <button class="btn primary" onclick="exportPDF('preview-izin','surat-izin')">📥 Export PDF</button>
+        <button class="btn" onclick="printPreview('preview-izin')">🖨️ Print</button>
+        <button class="btn danger" onclick="clearDraft('izin')">🗑️ Clear Draft</button>
+      </div>
+      <div class="preview-wrap">
+        <div class="preview-label">Live Preview</div>
+        <div class="preview" id="preview-izin"></div>
+      </div>
+    </section>
+
+    <div class="footer-note">
+      Data disimpan otomatis di localStorage • Export PDF via jsPDF
+      <br>
+      © 2026 <strong>Developer By Alipp</strong>
+    </div>
+  </main>
+</div>
+
+<script>
+// ==================== DISABLE ZOOM ====================
+document.addEventListener('wheel', function(e) {
+  if (e.ctrlKey) e.preventDefault();
+}, { passive: false });
+
+document.addEventListener('keydown', function(e) {
+  if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) {
+    e.preventDefault();
+  }
+});
+
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('gesturechange', e => e.preventDefault());
+document.addEventListener('gestureend', e => e.preventDefault());
+
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(e) {
+  const now = Date.now();
+  if (now - lastTouchEnd <= 300) e.preventDefault();
+  lastTouchEnd = now;
+}, { passive: false });
+
+document.addEventListener('touchmove', function(e) {
+  if (e.scale !== undefined && e.scale !== 1) e.preventDefault();
+}, { passive: false });
+
+// ==================== IMAGE STORE ====================
+const images = {};
+
+function attachUpload(inputId, previewId, storageKey) {
+  const input = document.getElementById(inputId);
+  const preview = document.getElementById(previewId);
+  if (!input) return;
+  input.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const dataUrl = ev.target.result;
+      preview.src = dataUrl;
+      images[storageKey] = dataUrl;
+      refreshPreview();
+      persistImages();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+function persistImages() {
+  try { localStorage.setItem('docgen_images', JSON.stringify(images)); } catch(e){}
+}
+function loadImages() {
+  try {
+    const raw = localStorage.getItem('docgen_images');
+    if (!raw) return;
+    Object.assign(images, JSON.parse(raw));
+    document.querySelectorAll('.upload-preview').forEach(img => {
+      const key = img.id.replace('-preview','');
+      if (images[key]) img.src = images[key];
+    });
+  } catch(e){}
+}
+
+// ==================== UTILS ====================
+function formatTanggal(iso) {
+  if (!iso) return '-';
+  const d = new Date(iso);
+  const bulan = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  return `${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
+}
+function formatRupiah(n) { return 'Rp ' + (+n||0).toLocaleString('id-ID'); }
+
+function terbilang(str) {
+  const n = parseInt(String(str).replace(/\D/g,''))||0;
+  const satuan = ['','satu','dua','tiga','empat','lima','enam','tujuh','delapan','sembilan','sepuluh','sebelas'];
+  const f = (x) => {
+    if (x < 12) return satuan[x];
+    if (x < 20) return f(x-10) + ' belas';
+    if (x < 100) return f(Math.floor(x/10)) + ' puluh ' + f(x%10);
+    if (x < 200) return 'seratus ' + f(x-100);
+    if (x < 1000) return f(Math.floor(x/100)) + ' ratus ' + f(x%100);
+    if (x < 2000) return 'seribu ' + f(x-1000);
+    if (x < 1e6) return f(Math.floor(x/1000)) + ' ribu ' + f(x%1000);
+    if (x < 1e9) return f(Math.floor(x/1e6)) + ' juta ' + f(x%1e6);
+    return f(Math.floor(x/1e9)) + ' miliar ' + f(x%1e9);
+  };
+  return 'Terbilang: ' + (f(n).trim() || 'nol') + ' rupiah';
+}
+
+// ==================== AUTO NOMOR ====================
+function autoNumber(inputId, prefix) {
+  const el = document.getElementById(inputId);
+  const key = 'docgen_lastnum_' + prefix;
+  let next = (parseInt(localStorage.getItem(key)) || 0) + 1;
+  const pad = String(next).padStart(3, '0');
+  const year = new Date().getFullYear();
+  if (prefix === 'SK') {
+    el.value = `${pad}/SK/${year}`;
+  } else {
+    el.value = `${prefix}-${pad}`;
+  }
+  localStorage.setItem(key, next);
+  triggerLivePreview();
+}
+
+// ==================== DATA MAP ====================
+const FIELD_MAP = {
+  lamaran: ['lam-nama','lam-ttl','lam-alamat','lam-kontak','lam-posisi','lam-perusahaan','lam-alamat-pt','lam-tanggal','lam-isi'],
+  cv: ['cv-nama','cv-jabatan','cv-email','cv-telp','cv-alamat','cv-link','cv-summary','cv-exp','cv-edu','cv-skills'],
+  invoice: ['inv-no','inv-tanggal','inv-klien','inv-alamat','inv-perusahaan','inv-kontak','inv-catatan'],
+  kwitansi: ['kw-no','kw-tanggal','kw-dari','kw-jumlah','kw-untuk','kw-penerima','kw-jabatan'],
+  izin: ['iz-jenis','iz-no','iz-nama','iz-ttl','iz-alamat','iz-jabatan','iz-mulai','iz-selesai','iz-alasan','iz-ttd','iz-jabatan-ttd']
+};
+const PREFIX = { lamaran:'lam', cv:'cv', invoice:'inv', kwitansi:'kw', izin:'iz' };
+
+function keyOf(id) { return id.replace(/^(lam|cv|inv|kw|iz)-/,'').replace(/-([a-z])/g,(_,c)=>c.toUpperCase()); }
+function idOf(type, key) { return PREFIX[type] + '-' + key.replace(/[A-Z]/g, m => '-' + m.toLowerCase()); }
+
+function getData(type) {
+  const d = {};
+  FIELD_MAP[type].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) d[keyOf(id)] = el.value;
+  });
+  return d;
+}
+function saveData(type) {
+  const d = getData(type);
+  if (type === 'invoice') d.items = collectInvoiceItems();
+  localStorage.setItem('docgen_' + type, JSON.stringify(d));
+}
+function loadData(type) {
+  const raw = localStorage.getItem('docgen_' + type);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    Object.entries(d).forEach(([key, val]) => {
+      if (key === 'items') return;
+      const el = document.getElementById(idOf(type, key));
+      if (el) el.value = val;
+    });
+    if (type === 'invoice' && d.items) d.items.forEach(it => addInvoiceItem(it));
+  } catch(e) { console.warn(e); }
+}
+function clearDraft(type) {
+  if (!confirm('Hapus draft form ini? (Data di localStorage akan dihapus)')) return;
+  localStorage.removeItem('docgen_' + type);
+  FIELD_MAP[type].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  if (type === 'invoice') {
+    document.getElementById('inv-items').innerHTML = '';
+    addInvoiceItem();
+  }
+  const today = new Date().toISOString().slice(0,10);
+  ['lam-tanggal','inv-tanggal','kw-tanggal','iz-mulai','iz-selesai'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = today;
+  });
+  refreshPreview();
+}
+
+// ==================== BACKUP / IMPORT ====================
+function exportBackup() {
+  const data = {};
+  ['lamaran','cv','invoice','kwitansi','izin'].forEach(t => {
+    const raw = localStorage.getItem('docgen_' + t);
+    if (raw) data[t] = JSON.parse(raw);
+  });
+  ['INV','KW','SK'].forEach(p => {
+    const v = localStorage.getItem('docgen_lastnum_' + p);
+    if (v) data['lastnum_' + p] = v;
+  });
+  data['_images'] = images;
+  data['_meta'] = { generator: 'Generator Dokumen', developer: 'Alipp', year: 2026, exportedAt: new Date().toISOString() };
+
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `docgen-backup-by-Alipp-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+function importBackup(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const data = JSON.parse(ev.target.result);
+      if (!confirm('Import akan menimpa data saat ini. Lanjutkan?')) return;
+      Object.entries(data).forEach(([k, v]) => {
+        if (k === '_meta') return;
+        if (k === '_images') {
+          Object.assign(images, v);
+          persistImages();
+          document.querySelectorAll('.upload-preview').forEach(img => {
+            const key = img.id.replace('-preview','');
+            if (images[key]) img.src = images[key];
+          });
+        } else if (k.startsWith('lastnum_')) {
+          localStorage.setItem('docgen_' + k, v);
+        } else {
+          localStorage.setItem('docgen_' + k, JSON.stringify(v));
+        }
+      });
+      alert('Import berhasil! Halaman akan dimuat ulang.');
+      location.reload();
+    } catch (err) {
+      alert('File tidak valid: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+}
+
+// ==================== GENERATORS ====================
+function genLamaran() {
+  const d = getData('lamaran');
+  const tgl = d.tanggal ? formatTanggal(d.tanggal) : formatTanggal(new Date().toISOString().slice(0,10));
+  const logo = images['lam-logo'] ? `<div class="doc-header-logo"><img src="${images['lam-logo']}" alt="logo"></div>` : '';
+  return `
+    <div class="doc">
+      ${logo}
+      <p>${tgl}</p>
+      <p>Hal: Lamaran Pekerjaan</p>
+      <p>Kepada Yth.<br><strong>HRD ${d.perusahaan || 'Perusahaan'}</strong><br>${d.alamatPt || ''}</p>
+      <p>Dengan hormat,</p>
+      <p>Saya yang bertanda tangan di bawah ini:</p>
+      <table style="margin-left:20px;margin-bottom:14px;font-size:14px">
+        <tr><td>Nama</td><td>: <strong>${d.nama || '...'}</strong></td></tr>
+        <tr><td>TTL</td><td>: ${d.ttl || '-'}</td></tr>
+        <tr><td>Alamat</td><td>: ${d.alamat || '-'}</td></tr>
+        <tr><td>Kontak</td><td>: ${d.kontak || '-'}</td></tr>
+      </table>
+      <p>Dengan ini mengajukan lamaran kerja untuk posisi <strong>${d.posisi || '-'}</strong> di perusahaan yang Bapak/Ibu pimpin.</p>
+      <p>${d.isi || 'Saya memiliki motivasi tinggi, mampu bekerja dalam tim, dan siap memberikan kontribusi terbaik bagi perusahaan.'}</p>
+      <p>Besar harapan saya untuk diberikan kesempatan wawancara. Atas perhatiannya saya ucapkan terima kasih.</p>
+      <div class="signature"><p>Hormat saya,</p><p class="name">${d.nama || '...'}</p></div>
+    </div>`;
+}
+
+function genCV() {
+  const d = getData('cv');
+  const expList = (d.exp||'').split('\n').filter(x=>x.trim()).map(l=>`<li>${l}</li>`).join('');
+  const eduList = (d.edu||'').split('\n').filter(x=>x.trim()).map(l=>`<li>${l}</li>`).join('');
+  const skillList = (d.skills||'').split(',').map(s=>s.trim()).filter(x=>x).join(' • ');
+  const foto = images['cv-foto'] ? `<img src="${images['cv-foto']}" style="max-height:90px;border-radius:50%;margin-bottom:8px">` : '';
+  return `
+    <div class="doc" style="font-family:Arial,sans-serif">
+      <div class="cv-header">
+        ${foto}
+        <h1>${d.nama || 'Nama Anda'}</h1>
+        <div class="title">${d.jabatan||''}</div>
+        <div class="contact">${[d.email,d.telp,d.alamat,d.link].filter(x=>x).join(' | ')}</div>
+      </div>
+      ${d.summary?`<div class="cv-section"><h3>Profil</h3><p>${d.summary}</p></div>`:''}
+      ${expList?`<div class="cv-section"><h3>Pengalaman Kerja</h3><ul>${expList}</ul></div>`:''}
+      ${eduList?`<div class="cv-section"><h3>Pendidikan</h3><ul>${eduList}</ul></div>`:''}
+      ${skillList?`<div class="cv-section"><h3>Keahlian</h3><p>${skillList}</p></div>`:''}
+    </div>`;
+}
+
+function addInvoiceItem(data = {}) {
+  const wrap = document.getElementById('inv-items');
+  const row = document.createElement('div');
+  row.className = 'item-row';
+  row.innerHTML = `
+    <input placeholder="Deskripsi" class="it-desc" value="${data.desc||''}">
+    <input type="number" placeholder="Qty" class="it-qty" value="${data.qty||1}" min="1">
+    <input type="number" placeholder="Harga" class="it-price" value="${data.price||0}" min="0">
+    <input placeholder="Subtotal" class="it-sub" readonly>
+    <button onclick="this.parentElement.remove();refreshPreview()">×</button>`;
+  wrap.appendChild(row);
+  const update = () => {
+    const q = +row.querySelector('.it-qty').value||0;
+    const p = +row.querySelector('.it-price').value||0;
+    row.querySelector('.it-sub').value = formatRupiah(q*p);
+    refreshPreview();
+  };
+  row.querySelectorAll('input').forEach(i=>i.addEventListener('input',update));
+  update();
+}
+function collectInvoiceItems() {
+  return [...document.querySelectorAll('#inv-items .item-row')].map(r=>({
+    desc: r.querySelector('.it-desc').value,
+    qty: +r.querySelector('.it-qty').value||0,
+    price: +r.querySelector('.it-price').value||0
+  })).filter(i=>i.desc||i.price);
+}
+function genInvoice() {
+  const d = getData('invoice');
+  const items = collectInvoiceItems();
+  const total = items.reduce((s,i)=>s+i.qty*i.price,0);
+  const rows = items.length
+    ? items.map(i=>`<tr><td>${i.desc}</td><td>${i.qty}</td><td>${formatRupiah(i.price)}</td><td>${formatRupiah(i.qty*i.price)}</td></tr>`).join('')
+    : '<tr><td colspan="4" style="text-align:center;color:#94a3b8;font-style:italic">Belum ada item</td></tr>';
+  const logo = images['inv-logo'] ? `<img class="inv-logo" src="${images['inv-logo']}" alt="logo">` : '';
+  const ttd = images['inv-ttd'] ? `<img src="${images['inv-ttd']}" alt="ttd">` : '';
+  return `
+    <div class="doc" style="font-family:Arial,sans-serif">
+      <div class="inv-header">
+        <div>
+          ${logo}
+          <h1>INVOICE</h1>
+          <div style="font-size:13px;color:#64748b">${d.perusahaan||''}</div>
+          <div style="font-size:12px;color:#94a3b8">${d.kontak||''}</div>
+        </div>
+        <div class="inv-meta">
+          <div><strong>No:</strong> ${d.no||'-'}</div>
+          <div><strong>Tanggal:</strong> ${d.tanggal?formatTanggal(d.tanggal):'-'}</div>
+        </div>
+      </div>
+      <div class="inv-parties">
+        <div>
+          <div style="font-size:11px;color:#64748b;text-transform:uppercase">Kepada:</div>
+          <div style="font-weight:bold;margin-top:4px">${d.klien||'-'}</div>
+          <div>${d.alamat||''}</div>
+        </div>
+      </div>
+      <table class="inv-table">
+        <thead><tr><th>Deskripsi</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr class="total-row"><td colspan="3" style="text-align:right">TOTAL</td><td>${formatRupiah(total)}</td></tr></tfoot>
+      </table>
+      ${d.catatan?`<div class="inv-note">Catatan: ${d.catatan}</div>`:''}
+      ${ttd?`<div class="inv-sign">${ttd}<div>${d.perusahaan||''}</div></div>`:''}
+    </div>`;
+}
+
+function genKwitansi() {
+  const d = getData('kwitansi');
+  const ttd = images['kw-ttd'] ? `<img src="${images['kw-ttd']}" alt="ttd">` : '';
+  return `
+    <div class="kw-box">
+      <div class="kw-header"><h1>KWITANSI</h1><div style="font-size:13px">No: ${d.no||'-'}</div></div>
+      <div class="kw-row"><div class="label">Telah Terima Dari</div><div class="value">: ${d.dari||'-'}</div></div>
+      <div class="kw-row"><div class="label">Uang Sejumlah</div><div class="value">: ${d.jumlah||'-'}</div></div>
+      <div class="kw-row"><div class="label">Untuk Pembayaran</div><div class="value">: ${d.untuk||'-'}</div></div>
+      <div class="kw-row"><div class="label">Tanggal</div><div class="value">: ${d.tanggal?formatTanggal(d.tanggal):'-'}</div></div>
+      <div class="kw-amount">${terbilang(d.jumlah||0)}</div>
+      <div class="kw-sign">
+        ${ttd}
+        <p>${d.penerima||'Penerima'}</p>
+        <p class="name">${d.jabatan||''}</p>
+      </div>
+    </div>`;
+}
+
+function genIzin() {
+  const d = getData('izin');
+  const periode = d.mulai && d.selesai ? `${formatTanggal(d.mulai)} s/d ${formatTanggal(d.selesai)}` : '-';
+  const isKeterangan = (d.jenis||'').toLowerCase().includes('keterangan');
+  const logo = images['iz-logo'] ? `<div class="doc-header-logo"><img src="${images['iz-logo']}" alt="logo"></div>` : '';
+  const ttd = images['iz-ttd'] ? `<img src="${images['iz-ttd']}" alt="ttd" style="max-height:60px">` : '';
+  return `
+    <div class="doc">
+      ${logo}
+      <h1>${d.jenis||'Surat Izin'}</h1>
+      <p style="text-align:center">Nomor: ${d.no||'-'}</p>
+      <div class="divider"></div>
+      <p>Yang bertanda tangan di bawah ini, menerangkan bahwa:</p>
+      <table style="margin-left:20px;margin-bottom:14px;font-size:15px">
+        <tr><td>Nama</td><td>: <strong>${d.nama||'...'}</strong></td></tr>
+        <tr><td>TTL</td><td>: ${d.ttl||'-'}</td></tr>
+        <tr><td>Alamat</td><td>: ${d.alamat||'-'}</td></tr>
+        <tr><td>Jabatan/Status</td><td>: ${d.jabatan||'-'}</td></tr>
+      </table>
+      ${isKeterangan
+        ? `<p>Bahwa nama tersebut di atas adalah benar-benar orang yang kami kenal dan berkelakuan baik.</p>`
+        : `<p>Bahwa yang bersangkutan diberikan izin untuk tidak melaksanakan kegiatan pada periode:</p>
+           <p style="text-align:center;font-size:16px"><strong>${periode}</strong></p>`}
+      <p>Keterangan: ${d.alasan||'-'}</p>
+      <p>Demikian surat ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
+      <div class="signature">
+        ${ttd}
+        <p>${d.ttd||''}</p>
+        <p class="name">${d.jabatanTtd||''}</p>
+      </div>
+    </div>`;
+}
+
+// ==================== LIVE PREVIEW ====================
+function refreshPreview() {
+  const set = (id, html) => { const el = document.getElementById(id); if (el) el.innerHTML = html; };
+  set('preview-lamaran', genLamaran());
+  set('preview-cv', genCV());
+  set('preview-invoice', genInvoice());
+  set('preview-kwitansi', genKwitansi());
+  set('preview-izin', genIzin());
+}
+function triggerLivePreview() {
+  refreshPreview();
+  ['lamaran','cv','invoice','kwitansi','izin'].forEach(t => saveData(t));
+}
+
+// ==================== SIDEBAR NAV ====================
+document.querySelectorAll('.sidebar button[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.sidebar button[data-tab]').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ==================== EXPORT PDF ====================
+async function exportPDF(previewId, filename) {
+  const el = document.getElementById(previewId);
+  if (!el || !el.innerHTML.trim()) return alert('Isi form dulu!');
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF('p', 'mm', 'a4');
+  const pageW = pdf.internal.pageSize.getWidth();
+  const pageH = pdf.internal.pageSize.getHeight();
+  const margin = 10;
+
+  const clone = el.cloneNode(true);
+  clone.style.position = 'fixed';
+  clone.style.left = '-9999px';
+  clone.style.top = '0';
+  clone.style.width = '794px';
+  clone.style.background = '#fff';
+  clone.style.padding = '30px';
+  clone.style.margin = '0';
+  clone.style.boxShadow = 'none';
+  clone.style.borderRadius = '0';
+  document.body.appendChild(clone);
+
+  try {
+    const canvas = await html2canvas(clone, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+    const imgW = pageW - margin * 2;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    const usableH = pageH - margin * 2;
+    const totalPages = Math.max(1, Math.ceil(imgH / usableH));
+
+    if (imgH <= usableH) {
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, imgW, imgH);
+    } else {
+      const pxPerMm = canvas.width / imgW;
+      const pageHeightPx = usableH * pxPerMm;
+      let y = 0;
+      let pageNum = 1;
+      while (y < canvas.height) {
+        const sliceH = Math.min(pageHeightPx, canvas.height - y);
+        const pageCanvas = document.createElement('canvas');
+        pageCanvas.width = canvas.width;
+        pageCanvas.height = sliceH;
+        const ctx = pageCanvas.getContext('2d');
+        ctx.drawImage(canvas, 0, y, canvas.width, sliceH, 0, 0, canvas.width, sliceH);
+        const sliceH_mm = sliceH / pxPerMm;
+        if (pageNum > 1) pdf.addPage();
+        pdf.addImage(pageCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', margin, margin, imgW, sliceH_mm);
+        y += sliceH;
+        pageNum++;
+      }
+    }
+
+    for (let i = 1; i <= totalPages; i++) {
+      pdf.setPage(i);
+
+      if (totalPages > 1) {
+        pdf.setFontSize(9);
+        pdf.setTextColor(120);
+        pdf.setFont(undefined, 'normal');
+        pdf.text(`Halaman ${i} / ${totalPages}`, pageW / 2, pageH - 6, { align: 'center' });
+      }
+    }
+
+    pdf.save(`${filename}-by-Alipp-${Date.now()}.pdf`);
+  } catch (e) {
+    alert('Gagal export PDF: ' + e.message);
+  } finally {
+    document.body.removeChild(clone);
+  }
+}
+
+// ==================== PRINT ====================
+function printPreview(previewId) {
+  const el = document.getElementById(previewId);
+  if (!el || !el.innerHTML.trim()) return alert('Isi form dulu!');
+  const w = window.open('', '_blank');
+  w.document.write(`
+    <html><head><title>Print - By Alipp</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <style>
+      body { font-family: 'Times New Roman', serif; padding: 30px; color: #000; }
+      .doc h1 { text-align: center; }
+      .divider { border-bottom: 3px double #000; margin: 12px 0 20px; }
+      .signature { margin-top: 60px; text-align: right; }
+      .signature .name { margin-top: 60px; font-weight: bold; text-decoration: underline; }
+      .signature img { max-height: 60px; }
+      .doc-header-logo { display:flex; align-items:center; gap:12px; margin-bottom:16px; border-bottom:2px solid #000; padding-bottom:10px; }
+      .doc-header-logo img { max-height: 55px; }
+      .cv-header { text-align:center; border-bottom:2px solid #2563eb; padding-bottom:14px; margin-bottom:18px; }
+      .cv-header h1 { font-size:26px; }
+      .cv-header img { max-height:90px; border-radius:50%; }
+      .cv-section h3 { color:#2563eb; text-transform:uppercase; border-bottom:1px solid #e2e8f0; padding-bottom:4px; }
+      .cv-section li, .cv-section p { font-size: 13px; }
+      .inv-table { width:100%; border-collapse:collapse; font-family:Arial,sans-serif; font-size:13px; }
+      .inv-table th { background:#2563eb; color:#fff; padding:10px; text-align:left; }
+      .inv-table td { padding:10px; border-bottom:1px solid #e2e8f0; }
+      .inv-table .total-row td { font-weight:bold; background:#f1f5f9; }
+      .inv-header { display:flex; justify-content:space-between; gap:16px; }
+      .inv-logo { max-height:60px; }
+      .inv-parties { display:flex; justify-content:space-between; margin-bottom:20px; }
+      .inv-sign { margin-top:50px; text-align:right; font-family:Arial,sans-serif; font-size:13px; }
+      .inv-sign img { max-height:60px; }
+      .kw-box { border:2px solid #000; padding:24px; }
+      .kw-header { text-align:center; border-bottom:2px solid #000; padding-bottom:10px; margin-bottom:18px; }
+      .kw-row { display:flex; margin-bottom:12px; }
+      .kw-row .label { width:180px; font-weight:bold; }
+      .kw-amount { background:#f1f5f9; padding:14px; border:1px dashed #000; margin:16px 0; font-weight:bold; text-align:center; }
+      .kw-sign { margin-top:60px; text-align:right; }
+      .kw-sign img { max-height:60px; }
+      .kw-sign .name { margin-top:60px; font-weight:bold; text-decoration:underline; }
+      @media print { body { padding: 0; } }
+    </style></head><body>${el.innerHTML}</body></html>
+  `);
+  w.document.close();
+  setTimeout(() => { w.print(); }, 400);
+}
+
+// ==================== INIT ====================
+window.addEventListener('DOMContentLoaded', () => {
+  const today = new Date().toISOString().slice(0,10);
+  ['lam-tanggal','inv-tanggal','kw-tanggal','iz-mulai','iz-selesai'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = today;
+  });
+
+  ['lamaran','cv','invoice','kwitansi','izin'].forEach(t => loadData(t));
+  if (!document.querySelector('#inv-items .item-row')) addInvoiceItem();
+
+  attachUpload('lam-logo-file','lam-logo-preview','lam-logo');
+  attachUpload('cv-foto-file','cv-foto-preview','cv-foto');
+  attachUpload('inv-logo-file','inv-logo-preview','inv-logo');
+  attachUpload('inv-ttd-file','inv-ttd-preview','inv-ttd');
+  attachUpload('kw-ttd-file','kw-ttd-preview','kw-ttd');
+  attachUpload('iz-logo-file','iz-logo-preview','iz-logo');
+  attachUpload('iz-ttd-file','iz-ttd-preview','iz-ttd');
+
+  loadImages();
+
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    if (el.type === 'file') return;
+    el.addEventListener('input', triggerLivePreview);
+    el.addEventListener('change', triggerLivePreview);
+  });
+
+  refreshPreview();
+  console.log('%c📄 Generator Dokumen - Developer By Alipp © 2026', 'color:#4f46e5;font-size:14px;font-weight:bold');
+});
+</script>
+</body>
+</html>
