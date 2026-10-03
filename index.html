@@ -4,255 +4,364 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#4f46e5">
 <title>Generator Dokumen</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
 :root {
   --primary: #4f46e5;
-  --primary-soft: #eef2ff;
+  --primary-2: #6366f1;
+  --primary-soft: rgba(79,70,229,.1);
+  --primary-glow: rgba(79,70,229,.35);
   --accent: #06b6d4;
-  --bg: #f8fafc;
-  --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
+
+  --bg: #f5f7fb;
+  --bg-grad: radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,.15), transparent 60%),
+              radial-gradient(900px 500px at 110% 10%, rgba(6,182,212,.12), transparent 60%),
+              linear-gradient(180deg,#f8fafc 0%, #eef2ff 100%);
   --card: #ffffff;
+  --card-2: #f8fafc;
   --border: #e5e7eb;
-  --border-soft: #f1f5f9;
+  --border-soft: #eef2f7;
   --text: #0f172a;
   --text-soft: #475569;
   --muted: #94a3b8;
   --danger: #ef4444;
   --success: #10b981;
-  --shadow-sm: 0 1px 2px rgba(15,23,42,.04);
-  --shadow-md: 0 4px 16px rgba(15,23,42,.06);
-  --shadow-lg: 0 12px 40px rgba(15,23,42,.08);
-  --radius: 14px;
-  --radius-sm: 10px;
+  --warning: #f59e0b;
+
+  --shadow-sm: 0 1px 2px rgba(15,23,42,.05);
+  --shadow-md: 0 6px 20px rgba(15,23,42,.07);
+  --shadow-lg: 0 16px 48px rgba(15,23,42,.10);
+  --shadow-glow: 0 10px 30px -10px var(--primary-glow);
+
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-lg: 22px;
+
+  --doc-font: "Times New Roman", serif;
+  --sidebar-w: 260px;
 }
 
+/* ===== DARK MODE ===== */
+html[data-theme="dark"] {
+  --bg: #0b1220;
+  --bg-grad: radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,.18), transparent 60%),
+              radial-gradient(900px 500px at 110% 10%, rgba(6,182,212,.15), transparent 60%),
+              linear-gradient(180deg,#0b1220 0%, #0f172a 100%);
+  --card: #111a2e;
+  --card-2: #0f172a;
+  --border: #1f2b45;
+  --border-soft: #1a2438;
+  --text: #e2e8f0;
+  --text-soft: #cbd5e1;
+  --muted: #64748b;
+  --primary-soft: rgba(99,102,241,.18);
+}
+html[data-theme="dark"] .preview { background:#fff; color:#000; }
+html[data-theme="dark"] .form-grid input,
+html[data-theme="dark"] .form-grid textarea,
+html[data-theme="dark"] .form-grid select,
+html[data-theme="dark"] .item-row input { background:#0f172a; color:#e2e8f0; border-color:#1f2b45; }
+html[data-theme="dark"] .form-grid input::placeholder { color:#475569; }
+
 html, body {
-  -webkit-text-size-adjust: 100%;
-  -moz-text-size-adjust: 100%;
-  text-size-adjust: 100%;
-  touch-action: pan-x pan-y;
-  -ms-touch-action: pan-x pan-y;
-  -ms-content-zooming: none;
-  overflow-x: hidden;
+  -webkit-text-size-adjust: 100%; text-size-adjust: 100%;
+  touch-action: pan-x pan-y; overflow-x: hidden;
 }
 
 body {
   font-family: 'Inter', -apple-system, "Segoe UI", Roboto, sans-serif;
-  background: var(--bg-gradient);
+  background: var(--bg-grad);
   background-attachment: fixed;
   color: var(--text);
   line-height: 1.55;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
-  -webkit-touch-callout: none;
-  display: flex;
-  flex-direction: column;
+  display: flex; flex-direction: column;
+  transition: background .35s ease, color .25s ease;
 }
 
-@supports (-webkit-touch-callout: none) {
-  body { touch-action: pan-x pan-y; }
+/* ===== TOPBAR ===== */
+.topbar {
+  display: none;
+  align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 40;
+  box-shadow: var(--shadow-sm);
 }
+.topbar .menu-btn {
+  background: var(--primary-soft); color: var(--primary);
+  border: none; width: 40px; height: 40px; border-radius: 12px;
+  font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.topbar .title { font-weight: 700; font-size: 15px; color: var(--text); }
+.topbar .actions { display:flex; gap:8px; }
 
 /* ===== LAYOUT ===== */
-.layout { display: flex; min-height: 100vh; flex: 1; }
+.layout { display: flex; flex: 1; min-height: 100vh; }
 
 /* ===== SIDEBAR ===== */
 .sidebar {
-  width: 250px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  color: #fff;
-  padding: 24px 14px;
+  width: var(--sidebar-w);
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 22px 14px;
   display: flex; flex-direction: column; gap: 4px;
   position: sticky; top: 0; height: 100vh; overflow-y: auto;
-  border-right: 1px solid rgba(255,255,255,.06);
+  z-index: 30;
+  transition: background .3s;
 }
 .sidebar::-webkit-scrollbar { width: 6px; }
-.sidebar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 
 .sidebar .brand {
-  font-size: 16px; font-weight: 700; color: #fff;
-  padding: 4px 12px 20px;
-  display: flex; align-items: center; gap: 10px;
+  font-size: 16px; font-weight: 800; color: var(--text);
+  padding: 4px 10px 18px;
+  display: flex; align-items: center; gap: 12px;
   letter-spacing: -0.3px;
 }
 .sidebar .brand .logo {
-  width: 34px; height: 34px;
-  background: linear-gradient(135deg, #6366f1, #06b6d4);
-  border-radius: 10px;
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  font-size: 18px;
-  box-shadow: 0 4px 12px rgba(99,102,241,.4);
+  font-size: 20px; color: #fff;
+  box-shadow: var(--shadow-glow);
   flex-shrink: 0;
 }
 .sidebar .brand .brand-text { display: flex; flex-direction: column; line-height: 1.2; }
+.sidebar .brand .brand-text small { font-size: 10px; color: var(--muted); font-weight: 500; letter-spacing: .4px; margin-top: 2px; }
+
+.search-box {
+  margin: 0 4px 10px; position: relative;
+}
+.search-box input {
+  width: 100%; padding: 10px 12px 10px 34px;
+  border: 1.5px solid var(--border);
+  background: var(--card-2);
+  border-radius: 10px;
+  font-size: 13px; font-family: inherit; color: var(--text);
+  transition: all .15s;
+}
+.search-box input:focus {
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.search-box::before {
+  content: "🔎"; position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%); font-size: 13px; opacity: .55;
+}
 
 .nav-label {
-  font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
-  color: #64748b; font-weight: 600;
+  font-size: 10px; text-transform: uppercase; letter-spacing: 1.4px;
+  color: var(--muted); font-weight: 700;
   padding: 14px 12px 6px;
 }
 
 .sidebar .nav-btn {
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.06);
-  color: #cbd5e1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-soft);
   padding: 11px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
   text-align: left;
   cursor: pointer;
   font-size: 13.5px; font-weight: 500;
   transition: all .18s ease;
-  display: flex; align-items: center; gap: 11px;
+  display: flex; align-items: center; gap: 12px;
   font-family: inherit;
+  position: relative;
 }
 .sidebar .nav-btn .ico {
-  font-size: 15px;
-  width: 20px; text-align: center;
+  font-size: 15px; width: 24px;
+  height: 24px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  background: var(--card-2);
   flex-shrink: 0;
+  transition: all .18s;
 }
 .sidebar .nav-btn:hover {
-  background: rgba(255,255,255,0.08);
-  color: #fff;
-  border-color: rgba(255,255,255,0.12);
+  background: var(--card-2); color: var(--text);
+  border-color: var(--border);
+  transform: translateX(2px);
 }
 .sidebar .nav-btn.active {
-  background: rgba(255,255,255,0.15);
+  background: linear-gradient(135deg, var(--primary-soft), transparent);
+  color: var(--primary);
+  font-weight: 700;
+  border-color: var(--primary-soft);
+}
+.sidebar .nav-btn.active .ico {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: #fff;
-  font-weight: 600;
-  border-color: rgba(255,255,255,0.2);
-  box-shadow: 0 4px 14px rgba(0,0,0,.2);
+  box-shadow: 0 4px 12px -4px var(--primary-glow);
+}
+.sidebar .nav-btn.active::after {
+  content: ""; position: absolute; left: -14px; top: 50%;
+  transform: translateY(-50%);
+  width: 3px; height: 22px;
+  background: linear-gradient(180deg, var(--primary), var(--accent));
+  border-radius: 0 4px 4px 0;
 }
 
 .sidebar .spacer { flex: 1; min-height: 12px; }
 
 .sidebar .data-tools {
   display: flex; flex-direction: column; gap: 6px;
-  padding-top: 12px;
-  border-top: 1px solid rgba(255,255,255,.06);
+  padding-top: 14px; border-top: 1px solid var(--border-soft);
+}
+.sidebar .data-tools .btn {
+  justify-content: flex-start;
+  background: var(--card-2);
+  border: 1px solid var(--border);
+  color: var(--text-soft);
+  padding: 9px 12px;
+  font-size: 12.5px;
+}
+.sidebar .data-tools .btn:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary-soft);
 }
 
 /* ===== MAIN ===== */
 .main {
   flex: 1;
-  padding: 28px 32px 40px;
-  max-width: 1180px;
-  margin: 0 auto;
-  width: 100%;
+  padding: 28px 36px 60px;
+  max-width: 1240px; margin: 0 auto; width: 100%;
+  animation: fadeIn .35s ease;
 }
 
 /* ===== PANEL ===== */
-.panel { display: none; animation: fadeIn .3s ease; }
+.panel { display: none; animation: slideUp .35s ease; }
 .panel.active { display: block; }
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-.panel-header {
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+.breadcrumb {
+  font-size: 11.5px; color: var(--muted);
+  margin-bottom: 8px; font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
 }
+.breadcrumb .sep { color: var(--border); }
+.breadcrumb strong { color: var(--primary); font-weight: 600; }
+
+.panel-header { margin-bottom: 22px; }
 .panel h2 {
-  font-size: 24px; font-weight: 700; color: var(--text);
-  letter-spacing: -0.5px;
-  display: flex; align-items: center; gap: 10px;
+  font-size: 26px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.6px;
+  display: flex; align-items: center; gap: 12px;
+  flex-wrap: wrap;
 }
 .panel h2 .badge {
-  font-size: 10px; font-weight: 600;
-  background: var(--primary-soft); color: var(--primary);
-  padding: 3px 9px; border-radius: 20px;
-  text-transform: uppercase; letter-spacing: .5px;
+  font-size: 10px; font-weight: 700;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  color: #fff;
+  padding: 4px 10px; border-radius: 20px;
+  text-transform: uppercase; letter-spacing: .6px;
+  box-shadow: 0 4px 12px -4px var(--primary-glow);
 }
 .panel .subtitle {
-  font-size: 13px; color: var(--muted);
-  margin-top: 4px;
+  font-size: 13.5px; color: var(--muted);
+  margin-top: 6px;
 }
 .panel h3 {
-  margin: 22px 0 10px; font-size: 14px;
-  font-weight: 600; color: var(--text-soft);
-  text-transform: uppercase; letter-spacing: .5px;
+  margin: 24px 0 12px; font-size: 13px;
+  font-weight: 700; color: var(--text-soft);
+  text-transform: uppercase; letter-spacing: 1px;
+  display: flex; align-items: center; gap: 8px;
+}
+.panel h3::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
 }
 
 /* ===== FORM GRID ===== */
 .form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
   background: var(--card);
-  padding: 24px;
+  padding: 26px;
   border-radius: var(--radius);
   box-shadow: var(--shadow-md);
   border: 1px solid var(--border-soft);
+  transition: background .3s, border-color .3s;
 }
 .form-grid label {
   display: flex; flex-direction: column;
   font-size: 12px; color: var(--text-soft);
-  gap: 6px; font-weight: 600;
+  gap: 7px; font-weight: 600;
   letter-spacing: .2px;
 }
 .form-grid label.full { grid-column: 1 / -1; }
 .form-grid input,
 .form-grid textarea,
 .form-grid select {
-  padding: 11px 13px;
+  padding: 12px 14px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 16px;
+  font-size: 15px;
   font-family: inherit;
   color: var(--text);
   transition: all .18s ease;
-  background: #fff;
+  background: var(--card-2);
   font-weight: 400;
 }
 .form-grid input::placeholder,
-.form-grid textarea::placeholder { color: #cbd5e1; }
+.form-grid textarea::placeholder { color: var(--muted); opacity: .7; }
 .form-grid input:hover,
 .form-grid textarea:hover,
-.form-grid select:hover { border-color: #cbd5e1; }
+.form-grid select:hover { border-color: var(--primary-2); }
 .form-grid input:focus,
 .form-grid textarea:focus,
 .form-grid select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(79,70,229,.1);
-  background: #fff;
+  box-shadow: 0 0 0 4px var(--primary-soft);
+  background: var(--card);
 }
-.form-grid textarea { resize: vertical; min-height: 80px; }
+.form-grid textarea { resize: vertical; min-height: 90px; }
 
 /* ===== UPLOAD ===== */
 .upload-box {
-  display: flex; flex-direction: column; gap: 8px;
-  background: var(--border-soft);
-  border: 1.5px dashed #cbd5e1;
+  display: flex; flex-direction: column; gap: 10px;
+  background: var(--card-2);
+  border: 1.5px dashed var(--border);
   border-radius: var(--radius-sm);
-  padding: 12px;
-  transition: all .18s;
+  padding: 14px; transition: all .2s;
+  position: relative;
 }
-.upload-box:hover { border-color: var(--primary); background: #f5f3ff; }
+.upload-box:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
 .upload-box input[type=file] { font-size: 11px; color: var(--text-soft); }
 .upload-box input[type=file]::file-selector-button {
-  background: rgba(148,163,184,.25);
-  border: none; padding: 5px 12px; border-radius: 6px;
-  font-size: 11px; font-weight: 600; color: var(--text-soft);
+  background: var(--primary); color: #fff; border: none;
+  padding: 6px 14px; border-radius: 8px;
+  font-size: 11px; font-weight: 600;
   cursor: pointer; margin-right: 8px;
   transition: all .15s;
 }
-.upload-box input[type=file]::file-selector-button:hover {
-  background: rgba(148,163,184,.4);
-}
+.upload-box input[type=file]::file-selector-button:hover { background: var(--primary-2); transform: translateY(-1px); }
 .upload-preview {
-  max-height: 55px; max-width: 130px;
+  max-height: 65px; max-width: 160px;
   object-fit: contain;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 3px; background: #fff;
+  border-radius: 8px;
+  padding: 4px; background: #fff;
 }
 .upload-preview:not([src]),
 .upload-preview[src=""] { display: none; }
@@ -260,164 +369,157 @@ body {
 /* ===== BUTTONS ===== */
 .actions {
   display: flex; flex-wrap: wrap; gap: 10px;
-  margin: 20px 0;
+  margin: 22px 0;
 }
 
 button.btn,
 button.add-item,
 .item-row button {
-  font-family: inherit;
-  font-weight: 600;
+  font-family: inherit; font-weight: 600;
   cursor: pointer;
   transition: all .18s ease;
   border-radius: var(--radius-sm);
+  position: relative;
+  overflow: hidden;
 }
 
 button.btn {
-  border: 1px solid rgba(100,116,139,0.2);
-  padding: 11px 20px;
+  border: 1.5px solid var(--border);
+  padding: 12px 22px;
   font-size: 13.5px;
-  background: rgba(148, 163, 184, 0.12);
-  color: #475569;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: var(--card);
+  color: var(--text-soft);
   display: inline-flex; align-items: center; gap: 8px;
-  box-shadow: 0 1px 2px rgba(15,23,42,.04);
+  box-shadow: var(--shadow-sm);
 }
 button.btn:hover {
-  background: rgba(148, 163, 184, 0.22);
-  color: #1e293b;
-  border-color: rgba(100,116,139,0.35);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(15,23,42,.08);
+  background: var(--card-2);
+  color: var(--text);
+  border-color: var(--primary-2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
-button.btn:active {
-  transform: translateY(0);
-  background: rgba(148, 163, 184, 0.3);
-}
+button.btn:active { transform: translateY(0); }
 
 button.btn.primary {
-  background: rgba(100, 116, 139, 0.2);
-  color: #1e293b;
-  border-color: rgba(100,116,139,0.3);
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  color: #fff; border-color: transparent;
+  box-shadow: var(--shadow-glow);
 }
 button.btn.primary:hover {
-  background: rgba(100, 116, 139, 0.3);
+  background: linear-gradient(135deg, var(--primary-2), var(--primary));
+  box-shadow: 0 12px 32px -10px var(--primary-glow);
+  transform: translateY(-2px);
 }
 
 button.btn.ghost {
-  background: rgba(148, 163, 184, 0.08);
-  color: #64748b;
-  border-color: rgba(148,163,184,0.15);
+  background: transparent; color: var(--text-soft);
 }
-button.btn.ghost:hover {
-  background: rgba(148, 163, 184, 0.18);
-  color: #475569;
-}
+button.btn.ghost:hover { background: var(--card-2); color: var(--primary); }
 
 button.btn.danger {
-  background: rgba(239, 68, 68, 0.08);
-  color: #dc2626;
-  border-color: rgba(239,68,68,0.2);
+  background: rgba(239,68,68,.08);
+  color: var(--danger);
+  border-color: rgba(239,68,68,.25);
 }
 button.btn.danger:hover {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239,68,68,0.35);
+  background: var(--danger); color: #fff;
+  border-color: var(--danger);
 }
 
 button.btn.mini {
-  padding: 0 12px;
-  font-size: 13px;
-  min-height: 42px;
-  border-radius: var(--radius-sm);
+  padding: 0 12px; font-size: 13px;
+  min-height: 44px; border-radius: var(--radius-sm);
 }
 
 button.add-item {
-  background: rgba(16, 185, 129, 0.1);
+  background: rgba(16,185,129,.1);
   color: #047857;
-  border: 1px solid rgba(16,185,129,0.2);
-  padding: 10px 18px;
-  font-size: 13px;
+  border: 1.5px solid rgba(16,185,129,.25);
+  padding: 11px 20px; font-size: 13px;
   margin-top: 10px;
 }
 button.add-item:hover {
-  background: rgba(16, 185, 129, 0.18);
-  transform: translateY(-1px);
+  background: var(--success); color: #fff;
+  border-color: var(--success);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px -8px rgba(16,185,129,.6);
 }
 
 /* ===== INVOICE ITEMS ===== */
 .item-row {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 2fr 1fr 1fr 1fr 40px 40px;
   gap: 8px; margin-bottom: 8px;
 }
 .item-row input {
-  padding: 10px 12px;
+  padding: 11px 12px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 13.5px;
   font-family: inherit;
   transition: all .18s;
-  background: #fff;
+  background: var(--card);
+  color: var(--text);
 }
 .item-row input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(79,70,229,.1);
+  outline: none; border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
 .item-row input[readonly] {
-  background: var(--border-soft);
-  color: var(--text-soft);
-  font-weight: 600;
+  background: var(--card-2); color: var(--text-soft); font-weight: 600;
 }
 .item-row button {
   padding: 0;
-  background: rgba(239, 68, 68, 0.1);
-  color: #dc2626;
-  font-size: 16px;
-  border: 1px solid rgba(239,68,68,0.15);
+  background: rgba(239,68,68,.08);
+  color: var(--danger);
+  font-size: 15px;
+  border: 1.5px solid rgba(239,68,68,.18);
   border-radius: var(--radius-sm);
-  cursor: pointer;
 }
-.item-row button:hover {
-  background: rgba(239, 68, 68, 0.2);
-  transform: none;
+.item-row button:hover { background: var(--danger); color: #fff; border-color: var(--danger); }
+.item-row button.dup {
+  background: rgba(6,182,212,.1);
+  color: #0e7490;
+  border-color: rgba(6,182,212,.25);
 }
+.item-row button.dup:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
 
 /* ===== PREVIEW ===== */
-.preview-wrap { margin-top: 24px; }
+.preview-wrap { margin-top: 26px; }
 .preview-label {
   font-size: 11px; color: var(--muted);
-  text-transform: uppercase; letter-spacing: 1.2px;
-  margin-bottom: 8px; font-weight: 700;
-  display: flex; align-items: center; gap: 8px;
+  text-transform: uppercase; letter-spacing: 1.4px;
+  margin-bottom: 10px; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
 }
 .preview-label::before {
   content: ""; width: 8px; height: 8px;
-  background: var(--success);
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px rgba(16,185,129,.15);
+  background: var(--success); border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(16,185,129,.18);
   animation: pulse 2s infinite;
 }
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: .5; }
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: .55; transform: scale(1.15); }
 }
 .preview {
-  background: #fff;
+  background: #fff; color: #000;
   box-shadow: var(--shadow-lg);
   border-radius: var(--radius);
-  padding: 44px 46px;
-  min-height: 200px;
+  padding: 46px 48px;
+  min-height: 220px;
   border: 1px solid var(--border-soft);
+  transition: box-shadow .3s;
 }
+.preview:hover { box-shadow: 0 24px 60px -20px rgba(15,23,42,.25); }
 .preview:empty::before {
   content: "Preview akan muncul di sini...";
   color: #cbd5e1; font-style: italic;
 }
 
 /* ===== DOKUMEN ===== */
-.doc { font-family: "Times New Roman", serif; color: #000; line-height: 1.6; }
+.doc { font-family: var(--doc-font); color: #000; line-height: 1.6; }
 .doc h1 { font-size: 20px; text-align: center; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 1px; }
 .doc .divider { border-bottom: 3px double #000; margin: 12px 0 20px; }
 .doc p { margin-bottom: 10px; text-align: justify; }
@@ -452,7 +554,7 @@ button.add-item:hover {
 .inv-sign img { max-height: 60px; display: block; margin-left: auto; margin-bottom: 4px; }
 
 /* Kwitansi */
-.kw-box { border: 2px solid #000; padding: 24px; font-family: "Times New Roman", serif; }
+.kw-box { border: 2px solid #000; padding: 24px; font-family: var(--doc-font); }
 .kw-header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 18px; }
 .kw-header h1 { font-size: 26px; letter-spacing: 3px; }
 .kw-row { display: flex; margin-bottom: 12px; font-size: 15px; }
@@ -463,113 +565,295 @@ button.add-item:hover {
 .kw-sign img { max-height: 60px; margin-bottom: 4px; }
 .kw-sign .name { margin-top: 60px; font-weight: bold; text-decoration: underline; }
 
-/* ===== WATERMARK FOOTER ===== */
-.watermark-footer {
-  width: 100%;
-  text-align: center;
-  padding: 16px 20px;
-  background: rgba(15, 23, 42, 0.95);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+/* ===== STATS ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px; margin-bottom: 20px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: all .2s;
+}
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+  border-color: var(--primary-soft);
+}
+.stat-card .label {
+  font-size: 10.5px; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--muted);
+  font-weight: 700; margin-bottom: 6px;
+}
+.stat-card .value {
+  font-size: 22px; font-weight: 800; color: var(--text);
+  letter-spacing: -0.5px;
+}
+.stat-card .value.gradient {
+  background: linear-gradient(135deg, var(--primary), var(--accent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ===== SETTINGS ===== */
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+.setting-item {
+  background: var(--card);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+}
+.setting-item .label {
+  font-size: 11.5px; font-weight: 700; color: var(--text-soft);
+  text-transform: uppercase; letter-spacing: .8px;
+  margin-bottom: 10px; display: block;
+}
+.color-picker { display: flex; gap: 8px; flex-wrap: wrap; }
+.color-dot {
+  width: 32px; height: 32px; border-radius: 50%;
+  border: 2px solid transparent; cursor: pointer;
+  transition: all .2s;
+  box-shadow: 0 2px 8px -2px rgba(0,0,0,.15);
+}
+.color-dot:hover { transform: scale(1.12); }
+.color-dot.active {
+  border-color: var(--text);
+  transform: scale(1.15);
+  box-shadow: 0 0 0 3px var(--primary-soft);
+}
+.font-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.font-btn {
+  padding: 8px 14px; border-radius: 10px;
+  border: 1.5px solid var(--border);
+  background: var(--card-2); color: var(--text-soft);
+  font-size: 12.5px; cursor: pointer;
+  font-family: inherit; font-weight: 600;
+  transition: all .15s;
+}
+.font-btn:hover { border-color: var(--primary); color: var(--primary); }
+.font-btn.active {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+  box-shadow: 0 6px 14px -6px var(--primary-glow);
+}
+
+/* ===== TOAST ===== */
+.toast-container {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  z-index: 9999; display: flex; flex-direction: column; gap: 8px;
+  pointer-events: none;
+}
+.toast {
+  background: rgba(15,23,42,.95);
+  color: #fff; padding: 11px 20px;
+  border-radius: 12px; font-size: 13px; font-weight: 500;
+  box-shadow: 0 10px 40px -10px rgba(0,0,0,.4);
+  backdrop-filter: blur(12px);
+  animation: toastIn .3s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: auto;
+  display: flex; align-items: center; gap: 8px;
+  max-width: 90vw;
+}
+.toast.success { background: linear-gradient(135deg, #059669, #10b981); }
+.toast.error { background: linear-gradient(135deg, #dc2626, #ef4444); }
+.toast.info { background: linear-gradient(135deg, var(--primary), var(--primary-2)); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(20px) scale(.9); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ===== WATERMARK ===== */
+.watermark-badge {
+  position: fixed; bottom: 16px; right: 16px;
+  background: rgba(15,23,42,.92);
+  backdrop-filter: blur(12px);
   color: #cbd5e1;
-  font-size: 12px;
-  letter-spacing: .5px;
-  border-top: 1px solid rgba(255,255,255,.06);
-  position: relative;
-  z-index: 10;
+  padding: 8px 14px;
+  border-radius: 40px;
+  font-size: 11px; font-weight: 500;
+  letter-spacing: .4px;
+  box-shadow: 0 10px 30px -10px rgba(0,0,0,.4);
+  z-index: 50;
+  display: flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(255,255,255,.08);
+  user-select: none;
+  transition: all .25s;
 }
-.watermark-footer strong {
-  color: #a5b4fc;
-  font-weight: 600;
-  letter-spacing: .8px;
+.watermark-badge:hover { transform: translateY(-2px); }
+.watermark-badge strong {
+  background: linear-gradient(135deg, #a5b4fc, #67e8f9);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
 }
-.watermark-footer .dot {
-  color: #64748b;
-  margin: 0 6px;
+.watermark-badge .dot { color: #6366f1; font-size: 10px; }
+
+/* ===== MODAL ===== */
+.modal-backdrop {
+  display: none; position: fixed; inset: 0;
+  background: rgba(15,23,42,.6);
+  backdrop-filter: blur(6px);
+  z-index: 9000;
+  align-items: center; justify-content: center;
+  padding: 20px;
+  animation: fadeIn .25s ease;
 }
+.modal-backdrop.show { display: flex; }
+.modal {
+  background: var(--card); border-radius: var(--radius-lg);
+  padding: 28px; max-width: 420px; width: 100%;
+  box-shadow: 0 30px 80px -20px rgba(0,0,0,.5);
+  animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+}
+.modal h3 { margin: 0 0 12px; font-size: 18px; color: var(--text); }
+.modal p { font-size: 13.5px; color: var(--text-soft); margin-bottom: 20px; line-height: 1.5; }
+.modal .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
 /* ===== RESPONSIVE ===== */
-@media (max-width: 760px) {
+@media (max-width: 860px) {
+  .topbar { display: flex; }
   .layout { flex-direction: column; }
   .sidebar {
-    width: 100%; height: auto; position: relative;
-    flex-direction: row; flex-wrap: wrap;
-    padding: 14px; gap: 8px;
-    border-right: none; border-bottom: 1px solid rgba(255,255,255,.08);
+    position: fixed; top: 0; left: 0;
+    width: 280px; height: 100vh;
+    transform: translateX(-100%);
+    transition: transform .3s cubic-bezier(.4,0,.2,1);
+    box-shadow: var(--shadow-lg);
+    border-right: 1px solid var(--border);
   }
-  .sidebar .brand { width: 100%; padding: 0 4px 10px; }
-  .nav-label { display: none; }
-  .sidebar .nav-btn {
-    font-size: 12.5px; padding: 9px 12px;
-    flex: 1 1 auto; justify-content: center;
+  .sidebar.open { transform: translateX(0); }
+  .sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(15,23,42,.5);
+    backdrop-filter: blur(4px);
+    z-index: 25;
   }
-  .sidebar .nav-btn .ico { width: auto; }
-  .sidebar .spacer { display: none; }
-  .sidebar .data-tools {
-    width: 100%; flex-direction: row;
-    padding-top: 10px; margin-top: 4px;
-    border-top: 1px solid rgba(255,255,255,.08);
-  }
-  .sidebar .data-tools button { flex: 1; font-size: 11.5px; padding: 8px; }
+  .sidebar-overlay.show { display: block; }
 
-  .main { padding: 18px 16px 30px; }
+  .main { padding: 20px 16px 80px; }
   .panel h2 { font-size: 20px; }
-  .form-grid { padding: 18px; gap: 12px; }
-  .preview { padding: 22px; }
+  .form-grid { padding: 20px; gap: 14px; }
+  .preview { padding: 24px; }
   .item-row { grid-template-columns: 1fr 1fr; }
+  .item-row button { height: 42px; }
   .inv-header { flex-direction: column; gap: 12px; }
   .inv-parties { flex-direction: column; gap: 12px; }
   .actions button.btn { flex: 1 1 auto; justify-content: center; }
+  .watermark-badge { bottom: 12px; right: 12px; font-size: 10px; padding: 6px 10px; }
+}
+
+@media (min-width: 861px) {
+  .sidebar-overlay { display: none !important; }
 }
 </style>
 </head>
 <body>
 
+<!-- ===== TOPBAR (mobile) ===== -->
+<div class="topbar">
+  <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+  <div class="title">Generator Dokumen</div>
+  <div class="actions">
+    <button class="menu-btn" onclick="toggleTheme()" id="themeBtnMobile" title="Tema">🌙</button>
+  </div>
+</div>
+
 <div class="layout">
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
     <div class="brand">
       <div class="logo">📄</div>
       <div class="brand-text">
         Generator Dokumen
+        <small>Multi-purpose document maker</small>
       </div>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="navSearch" placeholder="Cari dokumen..." oninput="filterNav(this.value)">
     </div>
 
     <div class="nav-label">Dokumen</div>
 
-    <button data-tab="lamaran" class="nav-btn active">
+    <button data-tab="dashboard" class="nav-btn">
+      <span class="ico">📊</span> Dashboard
+    </button>
+    <button data-tab="lamaran" class="nav-btn active" data-keywords="lamaran kerja surat">
       <span class="ico">✉️</span> Surat Lamaran
     </button>
-    <button data-tab="cv" class="nav-btn">
+    <button data-tab="cv" class="nav-btn" data-keywords="cv resume riwayat hidup">
       <span class="ico">👤</span> CV / Resume
     </button>
-    <button data-tab="invoice" class="nav-btn">
+    <button data-tab="invoice" class="nav-btn" data-keywords="invoice tagihan nota">
       <span class="ico">🧾</span> Invoice
     </button>
-    <button data-tab="kwitansi" class="nav-btn">
+    <button data-tab="kwitansi" class="nav-btn" data-keywords="kwitansi bukti bayar">
       <span class="ico">💵</span> Kwitansi
     </button>
-    <button data-tab="izin" class="nav-btn">
+    <button data-tab="izin" class="nav-btn" data-keywords="izin keterangan surat">
       <span class="ico">📋</span> Surat Izin
+    </button>
+
+    <div class="nav-label">Pengaturan</div>
+    <button data-tab="settings" class="nav-btn">
+      <span class="ico">⚙️</span> Pengaturan
     </button>
 
     <div class="spacer"></div>
 
     <div class="data-tools">
-      <button class="btn ghost" onclick="exportBackup()">
-        <span class="ico">💾</span> Backup Data
+      <button class="btn" onclick="exportBackup()">
+        <span>💾</span> Backup Data
       </button>
-      <button class="btn ghost" onclick="document.getElementById('importFile').click()">
-        <span class="ico">📂</span> Import Data
+      <button class="btn" onclick="document.getElementById('importFile').click()">
+        <span>📂</span> Import Data
       </button>
       <input type="file" id="importFile" accept=".json" style="display:none" onchange="importBackup(event)">
+      <button class="btn danger" onclick="confirmResetAll()">
+        <span>🗑️</span> Reset Semua
+      </button>
     </div>
   </aside>
 
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
   <main class="main">
+    <!-- ===== DASHBOARD ===== -->
+    <section class="panel" id="panel-dashboard">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> <strong>Dashboard</strong></div>
+      <div class="panel-header">
+        <h2>📊 Dashboard <span class="badge">Overview</span></h2>
+        <div class="subtitle">Ringkasan aktivitas & statistik dokumen Anda</div>
+      </div>
+
+      <div class="stats-grid" id="statsGrid"></div>
+
+      <h3>Info Counter</h3>
+      <div class="stats-grid" id="counterGrid"></div>
+
+      <h3>Quick Actions</h3>
+      <div class="actions">
+        <button class="btn primary" onclick="navTo('lamaran')">✉️ Buat Surat Lamaran</button>
+        <button class="btn" onclick="navTo('invoice')">🧾 Buat Invoice</button>
+        <button class="btn" onclick="navTo('kwitansi')">💵 Buat Kwitansi</button>
+        <button class="btn" onclick="exportBackup()">💾 Backup</button>
+      </div>
+    </section>
+
     <!-- ===== LAMARAN ===== -->
     <section class="panel active" id="panel-lamaran">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> Dokumen <span class="sep">/</span> <strong>Surat Lamaran</strong></div>
       <div class="panel-header">
-        <h2>✉️ Surat Lamaran Kerja <span class="badge">Live Preview</span></h2>
+        <h2>✉️ Surat Lamaran Kerja <span class="badge">Live</span></h2>
         <div class="subtitle">Isi form di bawah, preview & PDF otomatis terupdate</div>
       </div>
       <div class="form-grid">
@@ -600,8 +884,9 @@ button.add-item:hover {
 
     <!-- ===== CV ===== -->
     <section class="panel" id="panel-cv">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> Dokumen <span class="sep">/</span> <strong>CV / Resume</strong></div>
       <div class="panel-header">
-        <h2>👤 CV / Resume <span class="badge">Live Preview</span></h2>
+        <h2>👤 CV / Resume <span class="badge">Live</span></h2>
         <div class="subtitle">Buat CV profesional, siap export PDF</div>
       </div>
       <div class="form-grid">
@@ -633,9 +918,10 @@ button.add-item:hover {
 
     <!-- ===== INVOICE ===== -->
     <section class="panel" id="panel-invoice">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> Dokumen <span class="sep">/</span> <strong>Invoice</strong></div>
       <div class="panel-header">
-        <h2>🧾 Invoice <span class="badge">Live Preview</span></h2>
-        <div class="subtitle">Invoice dengan auto-hitung total & nomor otomatis</div>
+        <h2>🧾 Invoice <span class="badge">Live</span></h2>
+        <div class="subtitle">Auto-hitung total, nomor otomatis, dan bisa multi-item</div>
       </div>
       <div class="form-grid">
         <label>No. Invoice
@@ -664,7 +950,7 @@ button.add-item:hover {
       <button class="add-item" onclick="addInvoiceItem()">+ Tambah Item</button>
 
       <label style="margin-top:16px;display:block;font-size:12px;color:var(--text-soft);font-weight:600;letter-spacing:.2px">Catatan
-        <input id="inv-catatan" placeholder="Pembayaran dalam 14 hari" style="width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:10px;margin-top:6px;font-family:inherit;font-size:16px">
+        <input id="inv-catatan" placeholder="Pembayaran dalam 14 hari" style="width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:12px;margin-top:6px;font-family:inherit;font-size:15px;background:var(--card-2);color:var(--text)">
       </label>
 
       <div class="actions">
@@ -680,8 +966,9 @@ button.add-item:hover {
 
     <!-- ===== KWITANSI ===== -->
     <section class="panel" id="panel-kwitansi">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> Dokumen <span class="sep">/</span> <strong>Kwitansi</strong></div>
       <div class="panel-header">
-        <h2>💵 Kwitansi <span class="badge">Live Preview</span></h2>
+        <h2>💵 Kwitansi <span class="badge">Live</span></h2>
         <div class="subtitle">Terbilang otomatis — gak perlu nulis angka jadi huruf manual</div>
       </div>
       <div class="form-grid">
@@ -715,8 +1002,9 @@ button.add-item:hover {
 
     <!-- ===== IZIN ===== -->
     <section class="panel" id="panel-izin">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> Dokumen <span class="sep">/</span> <strong>Surat Izin</strong></div>
       <div class="panel-header">
-        <h2>📋 Surat Izin / Keterangan <span class="badge">Live Preview</span></h2>
+        <h2>📋 Surat Izin / Keterangan <span class="badge">Live</span></h2>
         <div class="subtitle">Pilih jenis surat — isi otomatis menyesuaikan format</div>
       </div>
       <div class="form-grid">
@@ -763,46 +1051,235 @@ button.add-item:hover {
         <div class="preview" id="preview-izin"></div>
       </div>
     </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section class="panel" id="panel-settings">
+      <div class="breadcrumb">🏠 <span class="sep">/</span> <strong>Pengaturan</strong></div>
+      <div class="panel-header">
+        <h2>⚙️ Pengaturan <span class="badge">Customize</span></h2>
+        <div class="subtitle">Atur tema, warna, dan tampilan dokumen</div>
+      </div>
+
+      <h3>Tema Warna</h3>
+      <div class="settings-grid">
+        <div class="setting-item">
+          <span class="label">Warna Utama</span>
+          <div class="color-picker" id="colorPicker"></div>
+        </div>
+        <div class="setting-item">
+          <span class="label">Mode Gelap</span>
+          <div style="display:flex;gap:8px;align-items:center">
+            <button class="btn" onclick="toggleTheme()" style="flex:1">
+              <span id="themeIcon">🌙</span> <span id="themeText">Aktifkan Dark Mode</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <h3>Font Dokumen</h3>
+      <div class="settings-grid">
+        <div class="setting-item" style="grid-column:1/-1">
+          <span class="label">Pilih Font</span>
+          <div class="font-list" id="fontList"></div>
+        </div>
+      </div>
+
+      <h3>Data</h3>
+      <div class="settings-grid">
+        <div class="setting-item">
+          <span class="label">Backup</span>
+          <button class="btn" onclick="exportBackup()" style="width:100%">💾 Export Backup JSON</button>
+        </div>
+        <div class="setting-item">
+          <span class="label">Import</span>
+          <button class="btn" onclick="document.getElementById('importFile').click()" style="width:100%">📂 Import Backup</button>
+        </div>
+        <div class="setting-item">
+          <span class="label">Reset</span>
+          <button class="btn danger" onclick="confirmResetAll()" style="width:100%">🗑️ Hapus Semua Data</button>
+        </div>
+      </div>
+
+      <h3>Keyboard Shortcuts</h3>
+      <div class="setting-item" style="font-size:13px;line-height:2">
+        <div><kbd style="background:var(--card-2);padding:3px 8px;border-radius:6px;font-size:11px;border:1px solid var(--border)">Ctrl+S</kbd> Export PDF dokumen aktif</div>
+        <div><kbd style="background:var(--card-2);padding:3px 8px;border-radius:6px;font-size:11px;border:1px solid var(--border)">Ctrl+P</kbd> Print dokumen aktif</div>
+        <div><kbd style="background:var(--card-2);padding:3px 8px;border-radius:6px;font-size:11px;border:1px solid var(--border)">Esc</kbd> Tutup modal</div>
+      </div>
+    </section>
   </main>
 </div>
 
-<!-- ===== WATERMARK FOOTER ===== -->
-<div class="watermark-footer">
+<!-- ===== WATERMARK BADGE ===== -->
+<div class="watermark-badge">
   <span class="dot">◆</span>
   Developer By <strong>Alipp</strong>
   <span class="dot">◆</span>
 </div>
 
+<!-- ===== TOAST ===== -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- ===== MODAL ===== -->
+<div class="modal-backdrop" id="modalBackdrop">
+  <div class="modal">
+    <h3 id="modalTitle">Konfirmasi</h3>
+    <p id="modalMsg">Yakin?</p>
+    <div class="modal-actions">
+      <button class="btn ghost" onclick="closeModal()">Batal</button>
+      <button class="btn danger" id="modalConfirm">Ya, Lanjutkan</button>
+    </div>
+  </div>
+</div>
+
 <script>
-// ==================== DISABLE ZOOM ====================
-document.addEventListener('wheel', function(e) {
-  if (e.ctrlKey) e.preventDefault();
-}, { passive: false });
-
-document.addEventListener('keydown', function(e) {
-  if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) {
-    e.preventDefault();
-  }
+// ==================== ZOOM DISABLE ====================
+document.addEventListener('wheel', e => { if (e.ctrlKey) e.preventDefault(); }, { passive: false });
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && ['+','-','=','0'].includes(e.key)) e.preventDefault();
 });
-
 document.addEventListener('gesturestart', e => e.preventDefault());
 document.addEventListener('gesturechange', e => e.preventDefault());
 document.addEventListener('gestureend', e => e.preventDefault());
 
 let lastTouchEnd = 0;
-document.addEventListener('touchend', function(e) {
+document.addEventListener('touchend', e => {
   const now = Date.now();
   if (now - lastTouchEnd <= 300) e.preventDefault();
   lastTouchEnd = now;
 }, { passive: false });
 
-document.addEventListener('touchmove', function(e) {
-  if (e.scale !== undefined && e.scale !== 1) e.preventDefault();
-}, { passive: false });
+// ==================== TOAST ====================
+function showToast(msg, type = 'info', duration = 2600) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icons = { success: '✓', error: '✕', info: 'ℹ' };
+  t.innerHTML = `<span>${icons[type]||'•'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'all .3s';
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(20px)';
+    setTimeout(() => t.remove(), 320);
+  }, duration);
+}
+
+// ==================== THEME ====================
+function applyTheme(theme) {
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('docgen_theme', theme);
+  const icon = document.getElementById('themeIcon');
+  const text = document.getElementById('themeText');
+  const mob = document.getElementById('themeBtnMobile');
+  if (theme === 'dark') {
+    if (icon) icon.textContent = '☀️';
+    if (text) text.textContent = 'Matikan Dark Mode';
+    if (mob) mob.textContent = '☀️';
+  } else {
+    if (icon) icon.textContent = '🌙';
+    if (text) text.textContent = 'Aktifkan Dark Mode';
+    if (mob) mob.textContent = '🌙';
+  }
+}
+function toggleTheme() {
+  const cur = document.documentElement.getAttribute('data-theme') || 'light';
+  applyTheme(cur === 'dark' ? 'light' : 'dark');
+  showToast(cur === 'dark' ? 'Light mode aktif' : 'Dark mode aktif', 'info', 1600);
+}
+
+// ==================== THEME COLOR ====================
+const COLORS = [
+  { name:'Indigo', p:'#4f46e5', p2:'#6366f1', a:'#06b6d4' },
+  { name:'Emerald', p:'#059669', p2:'#10b981', a:'#06b6d4' },
+  { name:'Rose', p:'#e11d48', p2:'#f43f5e', a:'#f59e0b' },
+  { name:'Amber', p:'#d97706', p2:'#f59e0b', a:'#ef4444' },
+  { name:'Sky', p:'#0284c7', p2:'#0ea5e9', a:'#06b6d4' },
+  { name:'Violet', p:'#7c3aed', p2:'#a855f7', a:'#ec4899' },
+];
+function applyColor(idx) {
+  const c = COLORS[idx] || COLORS[0];
+  const r = document.documentElement.style;
+  r.setProperty('--primary', c.p);
+  r.setProperty('--primary-2', c.p2);
+  r.setProperty('--accent', c.a);
+  r.setProperty('--primary-soft', hexToRgba(c.p, .12));
+  r.setProperty('--primary-glow', hexToRgba(c.p, .4));
+  localStorage.setItem('docgen_color', idx);
+  document.querySelectorAll('.color-dot').forEach((d,i)=>d.classList.toggle('active', i===idx));
+}
+function hexToRgba(hex, a) {
+  const h = hex.replace('#','');
+  const n = parseInt(h,16);
+  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`;
+}
+function buildColorPicker() {
+  const picker = document.getElementById('colorPicker');
+  if (!picker) return;
+  picker.innerHTML = COLORS.map((c,i) =>
+    `<div class="color-dot" style="background:linear-gradient(135deg,${c.p},${c.a})" title="${c.name}" onclick="applyColor(${i})"></div>`
+  ).join('');
+  const saved = parseInt(localStorage.getItem('docgen_color')) || 0;
+  applyColor(saved);
+}
+
+// ==================== FONT PICKER ====================
+const FONTS = [
+  { name:'Times', css:'"Times New Roman", serif' },
+  { name:'Arial', css:'Arial, sans-serif' },
+  { name:'Georgia', css:'Georgia, serif' },
+  { name:'Calibri', css:'Calibri, sans-serif' },
+];
+function applyFont(idx) {
+  const f = FONTS[idx] || FONTS[0];
+  document.documentElement.style.setProperty('--doc-font', f.css);
+  localStorage.setItem('docgen_font', idx);
+  document.querySelectorAll('.font-btn').forEach((b,i)=>b.classList.toggle('active', i===idx));
+}
+function buildFontPicker() {
+  const list = document.getElementById('fontList');
+  if (!list) return;
+  list.innerHTML = FONTS.map((f,i) =>
+    `<button class="font-btn" style="font-family:${f.css}" onclick="applyFont(${i})">${f.name}</button>`
+  ).join('');
+  const saved = parseInt(localStorage.getItem('docgen_font')) || 0;
+  applyFont(saved);
+}
+
+// ==================== SIDEBAR MOBILE ====================
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('show');
+}
+function filterNav(q) {
+  q = (q||'').toLowerCase().trim();
+  document.querySelectorAll('.sidebar .nav-btn').forEach(btn => {
+    const txt = (btn.textContent + ' ' + (btn.dataset.keywords||'')).toLowerCase();
+    btn.style.display = !q || txt.includes(q) ? '' : 'none';
+  });
+}
+
+// ==================== NAV ====================
+function navTo(tab) {
+  document.querySelectorAll('.sidebar button[data-tab]').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  const btn = document.querySelector(`.sidebar button[data-tab="${tab}"]`);
+  if (btn) btn.classList.add('active');
+  const panel = document.getElementById('panel-' + tab);
+  if (panel) panel.classList.add('active');
+  if (tab === 'dashboard') renderDashboard();
+  if (window.innerWidth <= 860) {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarOverlay').classList.remove('show');
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+document.querySelectorAll('.sidebar button[data-tab]').forEach(btn => {
+  btn.addEventListener('click', () => navTo(btn.dataset.tab));
+});
 
 // ==================== IMAGE STORE ====================
 const images = {};
-
 function attachUpload(inputId, previewId, storageKey) {
   const input = document.getElementById(inputId);
   const preview = document.getElementById(previewId);
@@ -817,6 +1294,7 @@ function attachUpload(inputId, previewId, storageKey) {
       images[storageKey] = dataUrl;
       refreshPreview();
       persistImages();
+      showToast('Gambar berhasil diunggah', 'success', 1600);
     };
     reader.readAsDataURL(file);
   });
@@ -876,6 +1354,7 @@ function autoNumber(inputId, prefix) {
   }
   localStorage.setItem(key, next);
   triggerLivePreview();
+  showToast('Nomor otomatis: ' + el.value, 'success', 1800);
 }
 
 // ==================== DATA MAP ====================
@@ -918,22 +1397,50 @@ function loadData(type) {
   } catch(e) { console.warn(e); }
 }
 function clearDraft(type) {
-  if (!confirm('Hapus draft form ini? (Data di localStorage akan dihapus)')) return;
-  localStorage.removeItem('docgen_' + type);
-  FIELD_MAP[type].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = '';
+  openModal('Hapus Draft?', 'Data form ini akan dihapus dari penyimpanan lokal.', () => {
+    localStorage.removeItem('docgen_' + type);
+    FIELD_MAP[type].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    if (type === 'invoice') {
+      document.getElementById('inv-items').innerHTML = '';
+      addInvoiceItem();
+    }
+    const today = new Date().toISOString().slice(0,10);
+    ['lam-tanggal','inv-tanggal','kw-tanggal','iz-mulai','iz-selesai'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = today;
+    });
+    refreshPreview();
+    showToast('Draft berhasil dihapus', 'success');
   });
-  if (type === 'invoice') {
-    document.getElementById('inv-items').innerHTML = '';
-    addInvoiceItem();
-  }
-  const today = new Date().toISOString().slice(0,10);
-  ['lam-tanggal','inv-tanggal','kw-tanggal','iz-mulai','iz-selesai'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.value = today;
+}
+
+// ==================== MODAL ====================
+let modalCallback = null;
+function openModal(title, msg, cb) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalMsg').textContent = msg;
+  document.getElementById('modalBackdrop').classList.add('show');
+  modalCallback = cb;
+}
+function closeModal() {
+  document.getElementById('modalBackdrop').classList.remove('show');
+  modalCallback = null;
+}
+document.getElementById('modalConfirm').addEventListener('click', () => {
+  if (modalCallback) modalCallback();
+  closeModal();
+});
+document.getElementById('modalBackdrop').addEventListener('click', e => {
+  if (e.target.id === 'modalBackdrop') closeModal();
+});
+function confirmResetAll() {
+  openModal('Hapus SEMUA Data?', 'Semua draft, gambar, dan pengaturan akan dihapus permanen. Yakin?', () => {
+    localStorage.clear();
+    location.reload();
   });
-  refreshPreview();
 }
 
 // ==================== BACKUP / IMPORT ====================
@@ -948,7 +1455,7 @@ function exportBackup() {
     if (v) data['lastnum_' + p] = v;
   });
   data['_images'] = images;
-  data['_meta'] = { generator: 'Generator Dokumen', year: 2026, exportedAt: new Date().toISOString() };
+  data['_meta'] = { generator: 'Generator Dokumen', year: new Date().getFullYear(), exportedAt: new Date().toISOString() };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
@@ -957,6 +1464,7 @@ function exportBackup() {
   a.download = `docgen-backup-${new Date().toISOString().slice(0,10)}.json`;
   a.click();
   URL.revokeObjectURL(url);
+  showToast('Backup berhasil diunduh', 'success');
 }
 function importBackup(e) {
   const file = e.target.files[0];
@@ -965,26 +1473,23 @@ function importBackup(e) {
   reader.onload = ev => {
     try {
       const data = JSON.parse(ev.target.result);
-      if (!confirm('Import akan menimpa data saat ini. Lanjutkan?')) return;
-      Object.entries(data).forEach(([k, v]) => {
-        if (k === '_meta') return;
-        if (k === '_images') {
-          Object.assign(images, v);
-          persistImages();
-          document.querySelectorAll('.upload-preview').forEach(img => {
-            const key = img.id.replace('-preview','');
-            if (images[key]) img.src = images[key];
-          });
-        } else if (k.startsWith('lastnum_')) {
-          localStorage.setItem('docgen_' + k, v);
-        } else {
-          localStorage.setItem('docgen_' + k, JSON.stringify(v));
-        }
+      openModal('Import Data?', 'Data saat ini akan ditimpa dengan file backup. Lanjutkan?', () => {
+        Object.entries(data).forEach(([k, v]) => {
+          if (k === '_meta') return;
+          if (k === '_images') {
+            Object.assign(images, v);
+            persistImages();
+          } else if (k.startsWith('lastnum_')) {
+            localStorage.setItem('docgen_' + k, v);
+          } else {
+            localStorage.setItem('docgen_' + k, JSON.stringify(v));
+          }
+        });
+        showToast('Import berhasil! Memuat ulang...', 'success');
+        setTimeout(() => location.reload(), 900);
       });
-      alert('Import berhasil! Halaman akan dimuat ulang.');
-      location.reload();
     } catch (err) {
-      alert('File tidak valid: ' + err.message);
+      showToast('File tidak valid: ' + err.message, 'error');
     }
   };
   reader.readAsText(file);
@@ -1047,7 +1552,8 @@ function addInvoiceItem(data = {}) {
     <input type="number" placeholder="Qty" class="it-qty" value="${data.qty||1}" min="1">
     <input type="number" placeholder="Harga" class="it-price" value="${data.price||0}" min="0">
     <input placeholder="Subtotal" class="it-sub" readonly>
-    <button onclick="this.parentElement.remove();refreshPreview()">×</button>`;
+    <button class="dup" title="Duplikat" onclick="duplicateItem(this)">⧉</button>
+    <button title="Hapus" onclick="this.parentElement.remove();refreshPreview()">×</button>`;
   wrap.appendChild(row);
   const update = () => {
     const q = +row.querySelector('.it-qty').value||0;
@@ -1057,6 +1563,16 @@ function addInvoiceItem(data = {}) {
   };
   row.querySelectorAll('input').forEach(i=>i.addEventListener('input',update));
   update();
+}
+function duplicateItem(btn) {
+  const row = btn.closest('.item-row');
+  const data = {
+    desc: row.querySelector('.it-desc').value,
+    qty: +row.querySelector('.it-qty').value||1,
+    price: +row.querySelector('.it-price').value||0
+  };
+  addInvoiceItem(data);
+  showToast('Item diduplikat', 'success', 1400);
 }
 function collectInvoiceItems() {
   return [...document.querySelectorAll('#inv-items .item-row')].map(r=>({
@@ -1171,21 +1687,58 @@ function triggerLivePreview() {
   ['lamaran','cv','invoice','kwitansi','izin'].forEach(t => saveData(t));
 }
 
-// ==================== SIDEBAR NAV ====================
-document.querySelectorAll('.sidebar button[data-tab]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.sidebar button[data-tab]').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
-  });
-});
+// ==================== DASHBOARD ====================
+function renderDashboard() {
+  const grid = document.getElementById('statsGrid');
+  const cGrid = document.getElementById('counterGrid');
+  const types = [
+    { key:'lamaran', label:'Surat Lamaran', emoji:'✉️' },
+    { key:'cv', label:'CV / Resume', emoji:'👤' },
+    { key:'invoice', label:'Invoice', emoji:'🧾' },
+    { key:'kwitansi', label:'Kwitansi', emoji:'💵' },
+    { key:'izin', label:'Surat Izin', emoji:'📋' },
+  ];
+  let totalFilled = 0;
+  grid.innerHTML = types.map(t => {
+    const raw = localStorage.getItem('docgen_' + t.key);
+    let filled = 0;
+    if (raw) {
+      try {
+        const d = JSON.parse(raw);
+        filled = Object.values(d).filter(v => {
+          if (Array.isArray(v)) return v.length > 0;
+          return v && String(v).trim() !== '';
+        }).length;
+      } catch(e){}
+    }
+    totalFilled += filled;
+    return `
+      <div class="stat-card">
+        <div class="label">${t.emoji} ${t.label}</div>
+        <div class="value ${filled?'gradient':''}">${filled || '—'}</div>
+      </div>`;
+  }).join('');
+
+  cGrid.innerHTML = ['INV','KW','SK'].map(p => {
+    const v = localStorage.getItem('docgen_lastnum_' + p) || '0';
+    return `
+      <div class="stat-card">
+        <div class="label">Counter ${p}</div>
+        <div class="value gradient">${v}</div>
+      </div>`;
+  }).join('') + `
+    <div class="stat-card">
+      <div class="label">Total Field Terisi</div>
+      <div class="value gradient">${totalFilled}</div>
+    </div>`;
+}
 
 // ==================== EXPORT PDF ====================
 async function exportPDF(previewId, filename) {
   const el = document.getElementById(previewId);
-  if (!el || !el.innerHTML.trim()) return alert('Isi form dulu!');
+  if (!el || !el.innerHTML.trim()) return showToast('Isi form dulu!', 'error');
 
+  showToast('Membuat PDF...', 'info', 1500);
   const { jsPDF } = window.jspdf;
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageW = pdf.internal.pageSize.getWidth();
@@ -1235,7 +1788,6 @@ async function exportPDF(previewId, filename) {
 
     for (let i = 1; i <= totalPages; i++) {
       pdf.setPage(i);
-
       if (totalPages > 1) {
         pdf.setFontSize(9);
         pdf.setTextColor(120);
@@ -1245,8 +1797,9 @@ async function exportPDF(previewId, filename) {
     }
 
     pdf.save(`${filename}-${Date.now()}.pdf`);
+    showToast('PDF berhasil diunduh', 'success');
   } catch (e) {
-    alert('Gagal export PDF: ' + e.message);
+    showToast('Gagal export PDF: ' + e.message, 'error');
   } finally {
     document.body.removeChild(clone);
   }
@@ -1255,13 +1808,13 @@ async function exportPDF(previewId, filename) {
 // ==================== PRINT ====================
 function printPreview(previewId) {
   const el = document.getElementById(previewId);
-  if (!el || !el.innerHTML.trim()) return alert('Isi form dulu!');
+  if (!el || !el.innerHTML.trim()) return showToast('Isi form dulu!', 'error');
   const w = window.open('', '_blank');
   w.document.write(`
     <html><head><title>Print</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-      body { font-family: 'Times New Roman', serif; padding: 30px; color: #000; }
+      body { font-family: var(--doc-font, 'Times New Roman', serif); padding: 30px; color: #000; }
       .doc h1 { text-align: center; }
       .divider { border-bottom: 3px double #000; margin: 12px 0 20px; }
       .signature { margin-top: 60px; text-align: right; }
@@ -1298,8 +1851,34 @@ function printPreview(previewId) {
   setTimeout(() => { w.print(); }, 400);
 }
 
+// ==================== KEYBOARD SHORTCUTS ====================
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeModal();
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    const activePanel = document.querySelector('.panel.active');
+    if (!activePanel) return;
+    const id = activePanel.id.replace('panel-','');
+    const map = { lamaran:'preview-lamaran', cv:'preview-cv', invoice:'preview-invoice', kwitansi:'preview-kwitansi', izin:'preview-izin' };
+    if (map[id]) exportPDF(map[id], id);
+  }
+  if ((e.ctrlKey || e.metaKey) && e.key === 'p') {
+    e.preventDefault();
+    const activePanel = document.querySelector('.panel.active');
+    if (!activePanel) return;
+    const id = activePanel.id.replace('panel-','');
+    const map = { lamaran:'preview-lamaran', cv:'preview-cv', invoice:'preview-invoice', kwitansi:'preview-kwitansi', izin:'preview-izin' };
+    if (map[id]) printPreview(map[id]);
+  }
+});
+
 // ==================== INIT ====================
 window.addEventListener('DOMContentLoaded', () => {
+  // Theme & color
+  applyTheme(localStorage.getItem('docgen_theme') || 'light');
+  buildColorPicker();
+  buildFontPicker();
+
   const today = new Date().toISOString().slice(0,10);
   ['lam-tanggal','inv-tanggal','kw-tanggal','iz-mulai','iz-selesai'].forEach(id => {
     const el = document.getElementById(id);
